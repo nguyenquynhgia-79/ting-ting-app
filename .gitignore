@@ -1,0 +1,13 @@
+node_modules
+FE/node_modules
+# Keep environment variables out of version control
+.env
+.env.production
+
+/generated/prisma
+*.log
+dev.db
+.claude
+.agents
+scratch
+skills-lock.json
