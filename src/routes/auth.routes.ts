@@ -1,7 +1,7 @@
 import { Router } from "express";
 import * as authController from "../controllers/auth.controller";
 import { authenticate } from "../middleware/auth.middleware";
-import { authLimiter } from "../app";
+import { authLimiter } from "../middleware/rate-limit.middleware";
 import { validateRequest } from "../middleware/validate.middleware";
 import { loginSchema, changePasswordSchema } from "../validations/auth.validation";
 

@@ -7,6 +7,7 @@ import rateLimit from "express-rate-limit";
 import { errorHandler } from "./middleware/error-handler";
 import { requireActiveUser } from "./middleware/status.middleware";
 import { authenticate } from "./middleware/auth.middleware";
+import { globalLimiter } from "./middleware/rate-limit.middleware";
 
 import authRoutes from "./routes/auth.routes";
 import groupRoutes from "./routes/group.routes";
@@ -41,24 +42,6 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-
-// Rate limiters
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 300,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { message: "Quá nhiều yêu cầu, vui lòng thử lại sau 15 phút." },
-});
-
-export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10, // max 10 login attempts per 15 min
-  skipSuccessfulRequests: true,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { message: "Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau 15 phút." },
-});
 
 // Middlewares
 app.use(globalLimiter);
