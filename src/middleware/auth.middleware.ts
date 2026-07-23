@@ -11,7 +11,8 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     }
 
     const token = authHeader.split(" ")[1];
-    const secret = process.env.JWT_SECRET || "nguyenquynhgia08102004camranhkhanhhoa";
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new Error("JWT_SECRET is not configured");
     
     const decoded = jwt.verify(token, secret) as JWTPayload;
     req.user = decoded;
