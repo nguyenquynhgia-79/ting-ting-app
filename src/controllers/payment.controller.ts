@@ -17,7 +17,7 @@ export const createPayment = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const confirmPayment = asyncHandler(async (req: Request, res: Response) => {
-  const { paymentId } = req.params;
+  const paymentId = req.params.paymentId as string;
   const userId = req.user!.userId;
   
   const payment = await paymentService.confirmPayment(paymentId, userId);
@@ -25,7 +25,7 @@ export const confirmPayment = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const rejectPayment = asyncHandler(async (req: Request, res: Response) => {
-  const { paymentId } = req.params;
+  const paymentId = req.params.paymentId as string;
   const userId = req.user!.userId;
   
   const payment = await paymentService.rejectPayment(paymentId, userId);
@@ -33,13 +33,13 @@ export const rejectPayment = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const getDebts = asyncHandler(async (req: Request, res: Response) => {
-  const { groupId } = req.params;
+  const groupId = req.params.groupId as string;
   const debts = await paymentService.getSimplifiedDebts(groupId);
   res.json(debts);
 });
 
 export const getGroupPayments = asyncHandler(async (req: Request, res: Response) => {
-  const { groupId } = req.params;
+  const groupId = req.params.groupId as string;
   const payments = await paymentService.getGroupPayments(groupId);
   res.json(payments);
 });

@@ -23,21 +23,21 @@ export const getMyGroups = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getGroupDetails = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const userId = req.user!.userId;
   const group = await groupService.getGroupDetails(id, userId);
   res.json(group);
 });
 
 export const leaveGroup = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const userId = req.user!.userId;
   await groupService.leaveGroup(id, userId);
   res.json({ message: "Left group successfully" });
 });
 
 export const updateGroupCover = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const { coverUrl } = req.body;
   if (!coverUrl) {
     res.status(400).json({ message: "coverUrl is required" });
@@ -48,20 +48,21 @@ export const updateGroupCover = asyncHandler(async (req: Request, res: Response)
 });
 
 export const updateGroup = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const userId = req.user!.userId;
   const updated = await groupService.updateGroup(id, userId, req.body);
   res.json(updated);
 });
 
 export const deleteGroup = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const userId = req.user!.userId;
   await groupService.deleteGroup(id, userId);
   res.json({ message: "Group deleted successfully" });
 });
+
 export const transferOwnership = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const userId = req.user!.userId;
   const { newOwnerId } = req.body;
   if (!newOwnerId) {

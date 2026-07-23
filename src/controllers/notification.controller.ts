@@ -9,7 +9,7 @@ export const getMyNotifications = asyncHandler(async (req: Request, res: Respons
 });
 
 export const markAsRead = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const userId = req.user!.userId;
   await notificationService.markAsRead(id, userId);
   res.json({ success: true });

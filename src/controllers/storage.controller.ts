@@ -60,9 +60,9 @@ const handleUpload = asyncHandler(async (req: Request, res: Response) => {
     return;
   }
 
-  // Validate magic bytes using file-type
-  const { fileTypeFromBuffer } = await import("file-type");
-  const fileType = await fileTypeFromBuffer(req.file.buffer);
+  // Validate magic bytes using file-type (ESM package)
+  const fileTypeModule: any = await Function('return import("file-type")')();
+  const fileType = await fileTypeModule.fileTypeFromBuffer(req.file.buffer);
   
   if (!fileType || !ALLOWED_TYPES.includes(fileType.mime)) {
     res.status(415).json({

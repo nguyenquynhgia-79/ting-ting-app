@@ -19,7 +19,7 @@ export const createExpense = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const getGroupExpenses = asyncHandler(async (req: Request, res: Response) => {
-  const { groupId } = req.params;
+  const groupId = req.params.groupId as string;
   const userId = req.user!.userId;
   const expenses = await expenseService.getExpensesByGroup(groupId, userId);
   res.json(expenses);
@@ -32,7 +32,7 @@ export const getUserExpenses = asyncHandler(async (req: Request, res: Response) 
 });
 
 export const updateExpense = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const { amount, description, split_type, splits, proof_url } = req.body;
   const userId = req.user!.userId;
 
@@ -55,14 +55,14 @@ export const updateExpense = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const remindExpense = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const userId = req.user!.userId;
   const result = await expenseService.remindCreator(id, userId);
   res.json(result);
 });
 
 export const deleteExpense = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const userId = req.user!.userId;
   
   await expenseService.deleteExpense(id, userId);

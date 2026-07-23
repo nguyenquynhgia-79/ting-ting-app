@@ -212,7 +212,7 @@ export class GroupService {
     });
 
     // Real-time
-    const members = await prisma.groupMember.findMany({ where: { id: groupId }, select: { user_id: true } });
+    const members = await prisma.groupMember.findMany({ where: { group_id: groupId }, select: { user_id: true } });
     sendToUsers(members.map(m => m.user_id), "GROUP_UPDATED", { type: "TRANSFER", groupId });
 
     return result;

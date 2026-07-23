@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Check, ChevronDown, Loader2, ToggleLeft, ToggleRight, ChevronLeft, Trash2 } from 'lucide-react';
+import { Camera, Check, Loader2, ToggleLeft, ToggleRight, ChevronLeft, Trash2 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
@@ -30,10 +30,6 @@ const EditExpense = () => {
   useEffect(() => {
     const fetchExpense = async () => {
       try {
-        const res = await api.get(`/expenses`); // We might need a specific endpoint, or find it in list. 
-        // Actually, let's assume we can get it via a filter or just use a dedicated GET /expenses/:id if available.
-        // Wait, does the backend have GET /expenses/:id? Let's check routes.
-        // If not, I should add it.
         const allExpensesRes = await api.get('/expenses');
         const expense = allExpensesRes.data.find((e: any) => e.id === id);
         
