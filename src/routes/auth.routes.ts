@@ -11,4 +11,9 @@ router.post("/login", authLimiter, validateRequest(loginSchema), authController.
 router.post("/change-password", authenticate, validateRequest(changePasswordSchema), authController.changePassword);
 router.get("/me", authenticate, authController.getMe);
 
+// Catch-all for /api/auth to prevent falling through to global authenticate middleware
+router.use((req, res) => {
+  res.status(404).json({ status: "error", message: `Cannot ${req.method} /api/auth${req.path}` });
+});
+
 export default router;
