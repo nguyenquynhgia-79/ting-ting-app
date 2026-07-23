@@ -1,0 +1,23 @@
+node_modules
+FE/node_modules
+FE/dist
+
+# Keep environment variables out of version control
+.env
+.env.*
+FE/.env
+FE/.env.*
+
+# Ignore markdown documentation files
+*.md
+
+# Logs, databases and agent artifacts
+/generated/prisma
+*.log
+server.log
+dev.db
+dev.db-journal
+.claude
+.agents
+scratch
+skills-lock.json
