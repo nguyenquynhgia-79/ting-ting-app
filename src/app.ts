@@ -68,8 +68,8 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 
 // Protected routes require active status
-app.use(authenticate);
-app.use(requireActiveUser);
+app.use("/api", authenticate);
+app.use("/api", requireActiveUser);
 
 app.use("/api/groups", groupRoutes);
 app.use("/api/expenses", expenseRoutes);
@@ -77,6 +77,11 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/storage", storageRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/notifications", notificationRoutes);
+
+// Catch-all for unknown routes
+app.use((req, res) => {
+  res.status(404).json({ status: "error", message: `Route not found: ${req.method} ${req.path}` });
+});
 
 // Error Handler
 app.use(errorHandler);
