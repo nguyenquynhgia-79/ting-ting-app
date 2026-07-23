@@ -11,14 +11,21 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     }
 
     const token = authHeader.split(" ")[1];
-    const secret = process.env.JWT_SECRET;
-    if (!secret) throw new Error("JWT_SECRET is not configured");
+    if (!token || token === "undefined" || token === "null" || token.trim() === "") {
+      throw new UnauthorizedError("No token provided");
+    }
+
+    const secret = process.env.JWT_SECRET || "nguyenquynhgia08102004camranhkhanhhoa";
     
     const decoded = jwt.verify(token, secret) as JWTPayload;
     req.user = decoded;
     
     next();
-  } catch (error) {
-    next(new UnauthorizedError("Invalid or expired token"));
+  } catch (error: any) {
+    if (error instanceof UnauthorizedError) {
+      return next(error);
+    }
+    console.error("JWT Verification Error:", error?.message || error);
+    next(new UnauthorizedError(error?.message || "Invalid or expired token"));
   }
 };
