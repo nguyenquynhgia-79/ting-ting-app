@@ -35,7 +35,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   const fetchNotifications = async () => {
-    if (!token) return;
+    if (!token || token === 'undefined' || token === 'null') return;
     try {
       const res = await fetch(`${apiUrl}/notifications`, {
         headers: {
@@ -52,6 +52,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const markAsRead = async (id: string) => {
+    if (!token || token === 'undefined' || token === 'null') return;
     try {
       await fetch(`${apiUrl}/notifications/${id}/read`, {
         method: 'PATCH',
@@ -66,6 +67,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const markAllAsRead = async () => {
+    if (!token || token === 'undefined' || token === 'null') return;
     try {
       await fetch(`${apiUrl}/notifications/read-all`, {
         method: 'PATCH',
@@ -78,7 +80,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   useEffect(() => {
-    if (token) {
+    if (token && token !== 'undefined' && token !== 'null') {
       fetchNotifications();
 
       const newSocket = io(SOCKET_URL, {

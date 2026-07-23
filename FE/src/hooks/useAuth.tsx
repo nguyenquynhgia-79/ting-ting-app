@@ -10,20 +10,41 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const getSanitizedToken = (): string | null => {
+  try {
+    const raw = localStorage.getItem('token');
+    if (!raw || raw === 'undefined' || raw === 'null' || raw.trim() === '') {
+      localStorage.removeItem('token');
+      return null;
+    }
+    return raw;
+  } catch {
+    return null;
+  }
+};
+
 const getStoredUser = () => {
   try {
     const raw = localStorage.getItem('user');
-    return raw ? JSON.parse(raw) : null;
+    if (!raw || raw === 'undefined' || raw === 'null') {
+      localStorage.removeItem('user');
+      return null;
+    }
+    return JSON.parse(raw);
   } catch {
     return null;
   }
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(getSanitizedToken());
   const [user, setUser] = useState<any | null>(getStoredUser());
 
   const login = (newToken: string, newUser: any) => {
+    if (!newToken || newToken === 'undefined' || newToken === 'null') {
+      console.error("Attempted to set invalid token during login");
+      return;
+    }
     setToken(newToken);
     setUser(newUser);
     localStorage.setItem('token', newToken);
