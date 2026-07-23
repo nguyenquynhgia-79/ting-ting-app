@@ -22,6 +22,9 @@ const app = express();
 // Disable server fingerprinting
 app.disable("x-powered-by");
 
+// Trust proxy for rate limiter (since Render acts as a reverse proxy)
+app.set("trust proxy", 1);
+
 // CORS — restrict to known origins
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5173")
   .split(",")
