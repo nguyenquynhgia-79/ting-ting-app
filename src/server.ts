@@ -11,6 +11,10 @@ const server = createServer(app);
 
 async function start() {
   try {
+    const dbUrl = process.env.DATABASE_URL || "";
+    const portMatch = dbUrl.match(/:(\d+)\//);
+    logger.info(`[DEBUG] Server is attempting to connect to database on port: ${portMatch ? portMatch[1] : "unknown"}`);
+    
     // Test database connection
     await prisma.$connect();
     logger.info("Database connected successfully");
