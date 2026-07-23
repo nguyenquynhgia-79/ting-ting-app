@@ -12,9 +12,11 @@ export const initSocket = (server: HttpServer) => {
     .split(",")
     .map((o) => o.trim());
 
+  const corsOrigin = allowedOrigins.includes("*") ? "*" : allowedOrigins;
+
   io = new Server(server, {
     cors: {
-      origin: allowedOrigins,
+      origin: corsOrigin,
       methods: ["GET", "POST"],
       credentials: true,
     }
