@@ -27,7 +27,8 @@ export class AuthService {
       status: user.status,
     };
 
-    const secret = process.env.JWT_SECRET || "nguyenquynhgia08102004camranhkhanhhoa";
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new Error("JWT_SECRET is not configured");
 
     const token = jwt.sign(payload, secret, {
       expiresIn: "2h",
