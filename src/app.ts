@@ -62,7 +62,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check
+// Health check & Root
+app.get("/", (req, res) => {
+  res.send("TingTing API is running!");
+});
 app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
