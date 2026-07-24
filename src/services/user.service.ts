@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { ConflictError, NotFoundError } from "../utils/errors";
 import { UserStatus } from "@prisma/client";
 import { encrypt, decrypt } from "../utils/encryption.util";
-
+import { cacheService } from "./cache.service";
 const mapUser = (user: any) => {
   if (!user) return user;
   if (user.account_number) {
@@ -42,10 +42,16 @@ export class UserService {
   }
 
   async findById(id: string) {
-    const user = await prisma.user.findUnique({
-      where: { id },
-    });
-    if (!user) throw new NotFoundError("User not found");
+    const cacheKey = `user_${id}`;
+    let user = cacheService.get<any>(cacheKey);
+    
+    if (!user) {
+      user = await prisma.user.findUnique({
+        where: { id },
+      });
+      if (!user) throw new NotFoundError("User not found");
+      cacheService.set(cacheKey, user, 300); // cache for 5 minutes
+    }
     return mapUser(user);
   }
 
@@ -58,6 +64,7 @@ export class UserService {
         status: "active",
       },
     });
+    cacheService.del(`user_${userId}`);
     return mapUser(user);
   }
 
@@ -76,6 +83,7 @@ export class UserService {
       where: { id: userId },
       data: { avatar_url: avatarUrl },
     });
+    cacheService.del(`user_${userId}`);
     return mapUser(user);
   }
 
@@ -89,6 +97,7 @@ export class UserService {
         account_name: data.account_name
       }
     });
+    cacheService.del(`user_${userId}`);
     return mapUser(user);
   }
   async getUserSummary(userId: string) {
