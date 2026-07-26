@@ -27,6 +27,9 @@ const GroupDetails = () => {
   const [selectedExpense, setSelectedExpense] = useState<any>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [transferMode, setTransferMode] = useState<'TRANSFER' | 'LEAVE' | null>(null);
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [addMemberIdentifier, setAddMemberIdentifier] = useState('');
+  const [isAddingMember, setIsAddingMember] = useState(false);
   
   const handleCopyCode = () => {
     if (group?.invite_code) {
@@ -161,7 +164,6 @@ const GroupDetails = () => {
     }
   };
 
-  // Called after transfer ownership succeeds
   const handleTransferSuccess = async () => {
     const mode = transferMode;
     setTransferMode(null);
@@ -176,6 +178,22 @@ const GroupDetails = () => {
     } else {
       // Just fetch group data again if it's only a transfer
       fetchGroupData();
+    }
+  };
+
+  const handleAddMemberSubmit = async () => {
+    if (!addMemberIdentifier.trim()) return;
+    setIsAddingMember(true);
+    try {
+      await api.post(`/groups/${id}/members/add`, { identifier: addMemberIdentifier.trim() });
+      setAddMemberIdentifier('');
+      setShowAddMember(false);
+      fetchGroupData();
+      alert('Thêm thành viên thành công!');
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Thêm thành viên thất bại');
+    } finally {
+      setIsAddingMember(false);
     }
   };
 
@@ -604,6 +622,23 @@ const GroupDetails = () => {
               <span>{group.members.length} thành viên</span>
             </div>
             <div 
+              onClick={() => setShowAddMember(true)}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '6px', 
+                background: 'rgba(255, 255, 255, 0.25)', 
+                padding: '6px 12px', 
+                borderRadius: '20px',
+                fontSize: '13px',
+                cursor: 'pointer',
+                fontWeight: 600
+              }}
+            >
+              <Plus size={14} />
+              <span>Thêm</span>
+            </div>
+            <div 
               onClick={handleCopyCode}
               style={{ 
                 display: 'flex', 
@@ -697,6 +732,90 @@ const GroupDetails = () => {
             </div>
           </div>
         )}
+
+        {/* Add Member Modal Overlay */}
+        {showAddMember && (
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0, left: 0, right: 0, bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.6)',
+              backdropFilter: 'blur(4px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 2000,
+              padding: '20px'
+            }}
+            onClick={() => setShowAddMember(false)}
+          >
+            <div 
+              style={{
+                backgroundColor: 'white',
+                padding: '24px',
+                borderRadius: '24px',
+                width: '100%',
+                maxWidth: '360px',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>Thêm thành viên</h3>
+                <button onClick={() => setShowAddMember(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 4 }}>
+                  <X size={20} />
+                </button>
+              </div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 20 }}>
+                Nhập Username hoặc Email của người bạn muốn thêm vào nhóm này.
+              </p>
+              
+              <input
+                type="text"
+                placeholder="Nhập username hoặc email..."
+                value={addMemberIdentifier}
+                onChange={(e) => setAddMemberIdentifier(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '14px 16px',
+                  backgroundColor: 'var(--background)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 12,
+                  fontSize: 15,
+                  fontWeight: 500,
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  marginBottom: 20
+                }}
+              />
+
+              <button 
+                onClick={handleAddMemberSubmit}
+                disabled={isAddingMember || !addMemberIdentifier.trim()}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: 12,
+                  backgroundColor: 'var(--primary)',
+                  color: 'white',
+                  border: 'none',
+                  fontWeight: 700,
+                  fontSize: 15,
+                  cursor: (isAddingMember || !addMemberIdentifier.trim()) ? 'not-allowed' : 'pointer',
+                  opacity: (isAddingMember || !addMemberIdentifier.trim()) ? 0.7 : 1,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: 8
+                }}
+              >
+                {isAddingMember && <Loader2 size={16} className="animate-spin" />}
+                Thêm vào nhóm
+              </button>
+            </div>
+          </div>
+        )}
+
         <div style={{ padding: '0 20px' }}>
           {activeTab === 'EXPENSES' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

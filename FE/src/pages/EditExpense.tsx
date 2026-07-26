@@ -311,11 +311,9 @@ const EditExpense = () => {
                 {splitMode === 'EQUAL' ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
                     <span style={{ fontSize: 15, fontWeight: 600, color: p.included ? 'var(--text-primary)' : 'var(--text-secondary)', minWidth: 80, textAlign: 'right' }}>{shareAmount.toLocaleString('vi-VN')}đ</span>
-                    {!isMe && (
-                      <button onClick={() => toggleParticipant(p.userId)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
-                        {p.included ? <ToggleRight size={32} color="var(--primary)" strokeWidth={1.5} /> : <ToggleLeft size={32} color="var(--border)" strokeWidth={1.5} />}
-                      </button>
-                    )}
+                    <button onClick={() => toggleParticipant(p.userId)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
+                      {p.included ? <ToggleRight size={32} color="var(--primary)" strokeWidth={1.5} /> : <ToggleLeft size={32} color="var(--border)" strokeWidth={1.5} />}
+                    </button>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>

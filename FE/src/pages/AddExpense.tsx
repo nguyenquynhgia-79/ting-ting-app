@@ -421,17 +421,15 @@ const AddExpense = () => {
                     }}>
                       {shareAmount.toLocaleString('vi-VN')}đ
                     </span>
-                    {!isMe && (
-                      <button
-                        onClick={() => toggleParticipant(p.userId)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}
-                      >
-                        {p.included
-                          ? <ToggleRight size={32} color="var(--primary)" strokeWidth={1.5} />
-                          : <ToggleLeft size={32} color="var(--border)" strokeWidth={1.5} />
-                        }
-                      </button>
-                    )}
+                    <button
+                      onClick={() => toggleParticipant(p.userId)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}
+                    >
+                      {p.included
+                        ? <ToggleRight size={32} color="var(--primary)" strokeWidth={1.5} />
+                        : <ToggleLeft size={32} color="var(--border)" strokeWidth={1.5} />
+                      }
+                    </button>
                   </div>
                 ) : (
                   /* CUSTOM: editable */
