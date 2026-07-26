@@ -10,11 +10,13 @@ import { useSocket } from '../hooks/useSocket';
 import { uploadFile } from '../services/upload.service';
 import { QRCodeSVG } from 'qrcode.react';
 import TransferOwnershipModal from '../components/TransferOwnershipModal';
+import { useDialog } from '../contexts/DialogContext';
 
 const GroupDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
+  const dialog = useDialog();
   
   const [group, setGroup] = useState<any>(null);
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -93,7 +95,7 @@ const GroupDetails = () => {
       if (data.groupId === id) {
         console.log('Group info updated real-time:', data);
         if (data.type === 'DELETE') {
-          alert('Nhóm này đã bị xóa bởi chủ nhóm.');
+          dialog.alert('Nhóm này đã bị xóa bởi chủ nhóm.');
           navigate('/groups');
         } else {
           fetchGroupData();
@@ -108,25 +110,27 @@ const GroupDetails = () => {
   }, [socket, id]);
 
   const handleDeleteExpense = async (expenseId: string) => {
-    if (!window.confirm("Bạn có chắc muốn xóa khoản chi này? Mọi chia sẻ sẽ được hoàn tác.")) return;
+    const isConfirmed = await dialog.confirm("Bạn có chắc muốn xóa khoản chi này? Mọi chia sẻ sẽ được hoàn tác.");
+    if (!isConfirmed) return;
     try {
       await api.delete(`/expenses/${expenseId}`);
       // Refresh data
       fetchGroupData();
     } catch (err: any) {
       console.error("Error deleting group", err);
-      alert(err?.response?.data?.message || "Xóa nhóm thất bại");
+      dialog.alert({ message: err?.response?.data?.message || "Xóa nhóm thất bại", type: 'error' });
     }
   };
 
   const handleRemindCreator = async (expenseId: string) => {
-    if (!window.confirm("Bạn muốn gửi thông báo nhắc nhở người tạo kiểm tra lại khoản chi này?")) return;
+    const isConfirmed = await dialog.confirm("Bạn muốn gửi thông báo nhắc nhở người tạo kiểm tra lại khoản chi này?");
+    if (!isConfirmed) return;
     try {
       await api.post(`/expenses/${expenseId}/remind`);
-      alert("Đã gửi yêu cầu xem xét lại chi tiêu cho người tạo!");
+      dialog.alert({ message: "Đã gửi yêu cầu xem xét lại chi tiêu cho người tạo!", type: 'success' });
     } catch (err: any) {
       console.error("Error reminding creator", err);
-      alert(err?.response?.data?.message || "Gửi yêu cầu thất bại");
+      dialog.alert({ message: err?.response?.data?.message || "Gửi yêu cầu thất bại", type: 'error' });
     }
   };
 
@@ -134,15 +138,16 @@ const GroupDetails = () => {
     // Check balance first
     const unsettled = group?.members?.filter((m: any) => Math.abs(Number(m.balance)) > 0.01) || [];
     if (unsettled.length > 0) {
-      alert(`Không thể xóa nhóm!\n\nVẫn còn ${unsettled.length} thành viên chưa tất toán nợ:\n${unsettled.map((m: any) => `• ${m.user?.username}: ${Number(m.balance).toLocaleString()}đ`).join('\n')}\n\nVui lòng giải quyết tất cả khoản nợ trước khi xóa nhóm.`);
+      dialog.alert({ message: `Không thể xóa nhóm!\n\nVẫn còn ${unsettled.length} thành viên chưa tất toán nợ:\n${unsettled.map((m: any) => `• ${m.user?.username}: ${Number(m.balance).toLocaleString()}đ`).join('\n')}\n\nVui lòng giải quyết tất cả khoản nợ trước khi xóa nhóm.`, type: 'error' });
       return;
     }
-    if (!window.confirm("Tất cả khoản nợ đã tất toán.\nBạn có chắc muốn XÓA NHÓM này không?\nNhóm sẽ bị lưu trữ và biến mất khỏi danh sách.")) return;
+    const isConfirmed = await dialog.confirm("Tất cả khoản nợ đã tất toán.\nBạn có chắc muốn XÓA NHÓM này không?\nNhóm sẽ bị lưu trữ và biến mất khỏi danh sách.");
+    if (!isConfirmed) return;
     try {
       await api.delete(`/groups/${id}`);
       navigate('/groups');
     } catch (err: any) {
-      alert(err.response?.data?.message || "Xóa nhóm thất bại");
+      dialog.alert({ message: err.response?.data?.message || "Xóa nhóm thất bại", type: 'error' });
     }
   };
 
@@ -153,9 +158,9 @@ const GroupDetails = () => {
 
     if (Math.abs(myBalNow) > 0.01) {
       if (myBalNow < 0) {
-        alert(`Bạn chưa thể rời nhóm!\n\nBạn đang nợ nhóm ${Math.abs(myBalNow).toLocaleString()}đ.\nVui lòng thanh toán khoản nợ trước khi rời nhóm.`);
+        dialog.alert({ message: `Bạn chưa thể rời nhóm!\n\nBạn đang nợ nhóm ${Math.abs(myBalNow).toLocaleString()}đ.\nVui lòng thanh toán khoản nợ trước khi rời nhóm.`, type: 'error' });
       } else {
-        alert(`Bạn chưa thể rời nhóm!\n\nNhóm đang nợ bạn ${Math.abs(myBalNow).toLocaleString()}đ.\nVui lòng thu hồi khoản tiền trước khi rời nhóm.`);
+        dialog.alert({ message: `Bạn chưa thể rời nhóm!\n\nNhóm đang nợ bạn ${Math.abs(myBalNow).toLocaleString()}đ.\nVui lòng thu hồi khoản tiền trước khi rời nhóm.`, type: 'error' });
       }
       return;
     }
@@ -173,13 +178,15 @@ const GroupDetails = () => {
     const confirmMsg = isLastMember
       ? 'Bạn là thành viên cuối cùng. Rời đi sẽ giải tán nhóm này. Bạn có chắc không?'
       : 'Bạn có chắc muốn rời khỏi nhóm này?\nLịch sử chi tiêu của bạn vẫn được lưu lại.';
-    if (!window.confirm(confirmMsg)) return;
+    
+    const isConfirmed = await dialog.confirm(confirmMsg);
+    if (!isConfirmed) return;
 
     try {
       await api.delete(`/groups/${id}/leave`);
       navigate('/groups');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Rời nhóm thất bại');
+      dialog.alert({ message: err.response?.data?.message || 'Rời nhóm thất bại', type: 'error' });
     }
   };
 
@@ -192,7 +199,7 @@ const GroupDetails = () => {
         await api.delete(`/groups/${id}/leave`);
         navigate('/groups');
       } catch (err: any) {
-        alert(err.response?.data?.message || 'Rời nhóm thất bại sau khi chuyển quyền');
+        dialog.alert({ message: err.response?.data?.message || 'Rời nhóm thất bại sau khi chuyển quyền', type: 'error' });
       }
     } else {
       // Just fetch group data again if it's only a transfer
@@ -210,9 +217,9 @@ const GroupDetails = () => {
       setSearchResults([]);
       setShowAddMember(false);
       fetchGroupData();
-      alert('Thêm thành viên thành công!');
+      dialog.alert({ message: 'Thêm thành viên thành công!', type: 'success' });
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Thêm thành viên thất bại');
+      dialog.alert({ message: err?.response?.data?.message || 'Thêm thành viên thất bại', type: 'error' });
     } finally {
       setIsAddingMember(false);
     }
@@ -230,7 +237,7 @@ const GroupDetails = () => {
       setGroup((prev: any) => ({ ...prev, qr_code_url: publicUrl }));
     } catch (err) {
       console.error('Cover upload failed', err);
-      alert('Upload ảnh bìa thất bại');
+      dialog.alert({ message: 'Upload ảnh bìa thất bại', type: 'error' });
       setCoverPreview('');
     } finally {
       setCoverUploading(false);
@@ -238,14 +245,16 @@ const GroupDetails = () => {
   };
 
   const handleRemoveCover = async () => {
-    if (!window.confirm('Bạn có chắc muốn xóa ảnh bìa?')) return;
+    const isConfirmed = await dialog.confirm('Bạn có chắc muốn xóa ảnh bìa?');
+    if (!isConfirmed) return;
+    
     setCoverUploading(true);
     try {
       await api.patch(`/groups/${group.id}/cover`, { coverUrl: null });
       setGroup((prev: any) => ({ ...prev, qr_code_url: null }));
     } catch (err) {
       console.error('Remove cover failed', err);
-      alert('Xóa ảnh bìa thất bại');
+      dialog.alert({ message: 'Xóa ảnh bìa thất bại', type: 'error' });
     } finally {
       setCoverUploading(false);
     }

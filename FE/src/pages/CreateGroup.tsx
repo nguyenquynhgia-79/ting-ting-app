@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
 import { uploadFile } from '../services/upload.service';
+import { useDialog } from '../contexts/DialogContext';
 
 const CreateGroup = () => {
   const [name, setName] = useState('');
@@ -17,6 +18,7 @@ const CreateGroup = () => {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string>('');
   const navigate = useNavigate();
+  const dialog = useDialog();
 
   const debouncedSearch = useDebounce(searchQuery, 500);
 
@@ -65,7 +67,7 @@ const CreateGroup = () => {
           await api.patch(`/groups/${groupId}/cover`, { coverUrl });
         } catch (uploadErr) {
           console.error('Cover upload failed (non-fatal)', uploadErr);
-          alert('Tạo nhóm thành công nhưng lỗi upload ảnh đại diện!');
+          dialog.alert({ message: 'Tạo nhóm thành công nhưng lỗi upload ảnh đại diện!', type: 'error' });
         }
       }
       navigate(`/groups/${groupId}`);

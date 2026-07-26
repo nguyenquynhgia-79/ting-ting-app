@@ -4,11 +4,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { uploadFile } from '../services/upload.service';
+import { useDialog } from '../contexts/DialogContext';
 
 const AddExpense = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user: authUser } = useAuth();
+  const dialog = useDialog();
 
   const initialGroupId = location.state?.groupId || '';
 
@@ -104,7 +106,8 @@ const AddExpense = () => {
       return;
     }
 
-    if (!window.confirm(`Bạn có chắc chắn muốn thêm khoản chi ${rawAmount.toLocaleString('vi-VN')}đ cho "${description.trim()}" không?`)) {
+    const isConfirmed = await dialog.confirm(`Bạn có chắc chắn muốn thêm khoản chi ${rawAmount.toLocaleString('vi-VN')}đ cho "${description.trim()}" không?`);
+    if (!isConfirmed) {
       return;
     }
 
@@ -135,7 +138,7 @@ const AddExpense = () => {
           await api.patch(`/expenses/${expenseRes.data.id}`, { proof_url: proofUrl });
         } catch (uploadErr) {
           console.error('Proof upload failed (non-fatal)', uploadErr);
-          alert('Tạo chi tiêu thành công nhưng lỗi upload ảnh hóa đơn!');
+          dialog.alert({ message: 'Tạo chi tiêu thành công nhưng lỗi upload ảnh hóa đơn!', type: 'error' });
         }
       }
 

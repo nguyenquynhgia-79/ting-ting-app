@@ -4,11 +4,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { uploadFile } from '../services/upload.service';
+import { useDialog } from '../contexts/DialogContext';
 
 const EditExpense = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
+  const dialog = useDialog();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -109,7 +111,8 @@ const EditExpense = () => {
       return;
     }
 
-    if (!window.confirm(`Bạn có chắc chắn muốn cập nhật khoản chi này không?`)) {
+    const isConfirmed = await dialog.confirm(`Bạn có chắc chắn muốn cập nhật khoản chi này không?`);
+    if (!isConfirmed) {
       return;
     }
 
@@ -132,7 +135,7 @@ const EditExpense = () => {
           });
         } catch (uploadErr) {
           console.error('Proof upload failed', uploadErr);
-          alert('Lỗi upload ảnh hóa đơn!');
+          dialog.alert({ message: 'Lỗi upload ảnh hóa đơn!', type: 'error' });
         }
       }
 
@@ -154,7 +157,8 @@ const EditExpense = () => {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa khoản chi này?')) return;
+    const isConfirmed = await dialog.confirm('Bạn có chắc chắn muốn xóa khoản chi này?');
+    if (!isConfirmed) return;
     setSaving(true);
     try {
       await api.delete(`/expenses/${id}`);

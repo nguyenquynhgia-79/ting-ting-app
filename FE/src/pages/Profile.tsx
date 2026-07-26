@@ -6,6 +6,7 @@ import BankInfoModal from '../components/BankInfoModal';
 import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
 import { uploadFile } from '../services/upload.service';
+import { useDialog } from '../contexts/DialogContext';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const Profile = () => {
   const [avatarPreview, setAvatarPreview] = useState<string>('');
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [showBankModal, setShowBankModal] = useState(false);
+  const dialog = useDialog();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -55,7 +57,8 @@ const Profile = () => {
 
   const handleRemoveAvatar = async () => {
     if (!displayUser?.avatar_url) return;
-    if (!window.confirm('Bạn có chắc muốn xóa ảnh đại diện?')) return;
+    const isConfirmed = await dialog.confirm('Bạn có chắc muốn xóa ảnh đại diện?');
+    if (!isConfirmed) return;
 
     setAvatarUploading(true);
     try {
@@ -65,7 +68,7 @@ const Profile = () => {
       setAvatarPreview('');
     } catch (err) {
       console.error('Avatar removal failed', err);
-      alert('Không thể xóa ảnh đại diện');
+      dialog.alert({ message: 'Không thể xóa ảnh đại diện', type: 'error' });
     } finally {
       setAvatarUploading(false);
     }

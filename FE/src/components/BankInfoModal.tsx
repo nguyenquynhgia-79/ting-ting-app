@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, CreditCard, Banknote, User as UserIcon } from 'lucide-react';
 import api from '../services/api';
+import { useDialog } from '../contexts/DialogContext';
 
 interface BankInfoModalProps {
   onClose: () => void;
@@ -18,6 +19,7 @@ const BankInfoModal: React.FC<BankInfoModalProps> = ({ onClose, onSuccess, initi
   const [accountNumber, setAccountNumber] = useState(initialData?.account_number || '');
   const [accountName, setAccountName] = useState(initialData?.account_name || '');
   const [loading, setLoading] = useState(false);
+  const dialog = useDialog();
 
   React.useEffect(() => {
     fetch('https://api.vietqr.io/v2/banks')
@@ -33,10 +35,11 @@ const BankInfoModal: React.FC<BankInfoModalProps> = ({ onClose, onSuccess, initi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!bankName || !accountNumber || !accountName) {
-      alert("Vui lòng điền đầy đủ thông tin (Ngân hàng, STK, Tên)");
+      dialog.alert({ message: "Vui lòng điền đầy đủ thông tin (Ngân hàng, STK, Tên)", type: 'error' });
       return;
     }
-    if (!window.confirm(`Vui lòng kiểm tra kỹ:\nNgân hàng: ${bankName}\nSố TK: ${accountNumber}\nTên: ${accountName.toUpperCase()}\n\nBạn có chắc chắn thông tin này là chính xác?`)) {
+    const isConfirmed = await dialog.confirm(`Vui lòng kiểm tra kỹ:\nNgân hàng: ${bankName}\nSố TK: ${accountNumber}\nTên: ${accountName.toUpperCase()}\n\nBạn có chắc chắn thông tin này là chính xác?`);
+    if (!isConfirmed) {
       return;
     }
     setLoading(true);
@@ -48,7 +51,7 @@ const BankInfoModal: React.FC<BankInfoModalProps> = ({ onClose, onSuccess, initi
       });
       onSuccess(res.data);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Lỗi cập nhật ngân hàng');
+      dialog.alert({ message: err.response?.data?.message || 'Lỗi cập nhật ngân hàng', type: 'error' });
     } finally {
       setLoading(false);
     }
