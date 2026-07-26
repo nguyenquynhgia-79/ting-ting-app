@@ -24,12 +24,31 @@ const GroupDetails = () => {
   const [showQR, setShowQR] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
   const [coverPreview, setCoverPreview] = useState<string>('');
-  const [selectedExpense, setSelectedExpense] = useState<any>(null);
-  const [showMenu, setShowMenu] = useState(false);
-  const [transferMode, setTransferMode] = useState<'TRANSFER' | 'LEAVE' | null>(null);
   const [showAddMember, setShowAddMember] = useState(false);
   const [addMemberIdentifier, setAddMemberIdentifier] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [isAddingMember, setIsAddingMember] = useState(false);
+
+  useEffect(() => {
+    if (!addMemberIdentifier.trim() || addMemberIdentifier.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await api.get(`/users/search?q=${addMemberIdentifier.trim()}`);
+        setSearchResults(res.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 400); // 400ms debounce
+
+    return () => clearTimeout(timer);
+  }, [addMemberIdentifier]);
   
   const handleCopyCode = () => {
     if (group?.invite_code) {
@@ -181,12 +200,14 @@ const GroupDetails = () => {
     }
   };
 
-  const handleAddMemberSubmit = async () => {
-    if (!addMemberIdentifier.trim()) return;
+  const handleAddMemberSubmit = async (identifierToAdd?: string) => {
+    const target = identifierToAdd || addMemberIdentifier;
+    if (!target.trim()) return;
     setIsAddingMember(true);
     try {
-      await api.post(`/groups/${id}/members/add`, { identifier: addMemberIdentifier.trim() });
+      await api.post(`/groups/${id}/members/add`, { identifier: target.trim() });
       setAddMemberIdentifier('');
+      setSearchResults([]);
       setShowAddMember(false);
       fetchGroupData();
       alert('Thêm thành viên thành công!');
@@ -770,27 +791,71 @@ const GroupDetails = () => {
                 Nhập Username hoặc Email của người bạn muốn thêm vào nhóm này.
               </p>
               
-              <input
-                type="text"
-                placeholder="Nhập username hoặc email..."
-                value={addMemberIdentifier}
-                onChange={(e) => setAddMemberIdentifier(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '14px 16px',
-                  backgroundColor: 'var(--background)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 12,
-                  fontSize: 15,
-                  fontWeight: 500,
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  marginBottom: 20
-                }}
-              />
+              <div style={{ position: 'relative', marginBottom: 20 }}>
+                <input
+                  type="text"
+                  placeholder="Nhập tên đăng nhập hoặc email..."
+                  value={addMemberIdentifier}
+                  onChange={(e) => setAddMemberIdentifier(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    backgroundColor: 'var(--background)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 12,
+                    fontSize: 15,
+                    fontWeight: 500,
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+                
+                {isSearching && (
+                  <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)' }}>
+                    <Loader2 size={16} className="animate-spin" color="var(--text-secondary)" />
+                  </div>
+                )}
+                
+                {/* Search Results Dropdown */}
+                {searchResults.length > 0 && (
+                  <div style={{ 
+                    position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 8,
+                    backgroundColor: 'white', borderRadius: 12, border: '1px solid var(--border)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)', overflow: 'hidden', zIndex: 10
+                  }}>
+                    {searchResults.map(user => (
+                      <div 
+                        key={user.id}
+                        onClick={() => handleAddMemberSubmit(user.username)}
+                        style={{
+                          padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12,
+                          borderBottom: '1px solid var(--border)', cursor: 'pointer'
+                        }}
+                      >
+                        <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                          <img src={`https://ui-avatars.com/api/?name=${user.username}&background=E5E7EB&color=374151&bold=true&size=64`} alt={user.username} style={{ width: '100%', height: '100%' }} />
+                        </div>
+                        <div>
+                          <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: 'var(--text-primary)' }}>{user.username}</p>
+                          {user.email && <p style={{ margin: 0, fontSize: 12, color: 'var(--text-secondary)' }}>{user.email}</p>}
+                        </div>
+                        <div style={{ marginLeft: 'auto' }}>
+                          <button style={{ 
+                            background: 'none', border: 'none', padding: '4px 12px', borderRadius: 20, 
+                            backgroundColor: 'var(--primary-light)', color: 'var(--primary)', 
+                            fontWeight: 700, fontSize: 12, cursor: 'pointer' 
+                          }}>
+                            Thêm
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               <button 
-                onClick={handleAddMemberSubmit}
+                onClick={() => handleAddMemberSubmit()}
                 disabled={isAddingMember || !addMemberIdentifier.trim()}
                 style={{
                   width: '100%',
