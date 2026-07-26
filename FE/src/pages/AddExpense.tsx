@@ -152,10 +152,11 @@ const AddExpense = () => {
       flex: 1,
       display: 'flex',
       flexDirection: 'column',
-      height: '100vh',
+      minHeight: '100dvh',
       backgroundColor: 'var(--background)',
       color: 'var(--text-primary)',
       fontFamily: 'system-ui, -apple-system, sans-serif',
+      paddingBottom: '24px',
     }}>
 
       {/* ── HEADER ── */}
@@ -209,7 +210,7 @@ const AddExpense = () => {
         </button>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
         {/* ── AMOUNT CARD ── */}
         <div style={{

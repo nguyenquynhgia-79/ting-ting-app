@@ -175,7 +175,7 @@ const EditExpense = () => {
 
   return (
     <div style={{
-      flex: 1, display: 'flex', flexDirection: 'column', height: '100vh',
+      flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100dvh', paddingBottom: '24px',
       backgroundColor: 'var(--background)', color: 'var(--text-primary)',
       fontFamily: 'system-ui, -apple-system, sans-serif',
     }}>
@@ -217,7 +217,7 @@ const EditExpense = () => {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         
         {error && (
            <div style={{ padding: '12px 16px', borderRadius: 12, backgroundColor: '#FEF2F2', color: '#EF4444', fontWeight: 600, fontSize: 14, border: '1px solid #FECACA' }}>
