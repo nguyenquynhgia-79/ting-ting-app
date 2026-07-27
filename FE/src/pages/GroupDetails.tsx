@@ -33,6 +33,7 @@ const GroupDetails = () => {
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<any>(null);
   const [transferMode, setTransferMode] = useState<'TRANSFER' | 'LEAVE' | null>(null);
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     if (!addMemberIdentifier.trim() || addMemberIdentifier.trim().length < 2) {
