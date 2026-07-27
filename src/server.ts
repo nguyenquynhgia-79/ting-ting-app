@@ -1,4 +1,5 @@
 import "dotenv/config";
+import bcrypt from "bcrypt";
 import app from "./app";
 import prisma from "./config/database";
 import { logger } from "./utils/logger.util";
@@ -18,6 +19,22 @@ async function start() {
     // Test database connection
     await prisma.$connect();
     logger.info("Database connected successfully");
+
+    // Tự động tạo tài khoản Admin gqnadmin nếu chưa có
+    const adminExists = await prisma.user.findUnique({ where: { username: "gqnadmin" } });
+    if (!adminExists) {
+      const hashedPassword = await bcrypt.hash("quynhgia11b5", 10);
+      await prisma.user.create({
+        data: {
+          username: "gqnadmin",
+          email: "gqnadmin@tingting.com",
+          password_hash: hashedPassword,
+          status: "active",
+          role: "ADMIN"
+        }
+      });
+      logger.info("Admin account 'gqnadmin' created successfully!");
+    }
 
     initSocket(server);
 
