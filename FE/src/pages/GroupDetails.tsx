@@ -31,6 +31,8 @@ const GroupDetails = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isAddingMember, setIsAddingMember] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState<any>(null);
+  const [transferMode, setTransferMode] = useState<'TRANSFER' | 'LEAVE' | null>(null);
 
   useEffect(() => {
     if (!addMemberIdentifier.trim() || addMemberIdentifier.trim().length < 2) {
