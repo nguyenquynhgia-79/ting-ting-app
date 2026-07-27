@@ -1,10 +1,18 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, ShieldCheck } from 'lucide-react';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Users, Settings, LogOut, ShieldCheck, Menu, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 const AdminLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Close sidebar when route changes on mobile
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location]);
 
   const handleLogout = () => {
     logout();
@@ -20,16 +28,36 @@ const AdminLayout = () => {
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-72 bg-white border-r border-slate-200 flex flex-col shadow-sm z-10 relative">
-        <div className="h-20 flex items-center px-6 border-b border-slate-100">
-          <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center mr-3 text-indigo-600">
-            <ShieldCheck size={24} />
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 flex flex-col shadow-xl md:shadow-sm
+        transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="h-20 flex items-center justify-between px-6 border-b border-slate-100">
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center mr-3 text-indigo-600">
+              <ShieldCheck size={24} />
+            </div>
+            <div>
+              <h1 className="text-xl font-extrabold text-slate-800 tracking-tight">TingTing</h1>
+              <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Workspace Admin</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-extrabold text-slate-800 tracking-tight">TingTing</h1>
-            <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Workspace Admin</p>
-          </div>
+          <button 
+            className="md:hidden p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
@@ -76,12 +104,20 @@ const AdminLayout = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden relative">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {/* Top bar */}
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-8 z-10 sticky top-0">
-          <h2 className="text-xl font-bold text-slate-800">Bảng điều khiển</h2>
+        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 md:px-8 z-10 sticky top-0">
           <div className="flex items-center gap-4">
-            <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold tracking-wide">
+            <button 
+              className="md:hidden p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+            <h2 className="text-lg md:text-xl font-bold text-slate-800 hidden sm:block">Bảng điều khiển</h2>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] md:text-xs font-bold tracking-wide whitespace-nowrap">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               SYSTEM ONLINE
             </span>
@@ -89,7 +125,7 @@ const AdminLayout = () => {
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-auto p-8 bg-slate-50/50">
+        <div className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8 bg-slate-50/50">
           <Outlet />
         </div>
       </main>
