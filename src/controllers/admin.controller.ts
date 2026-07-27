@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/error-handler";
 import prisma from "../config/database";
-import { getIO } from "../socket";
+import { getIo } from "../socket";
 
 export const getSystemStats = asyncHandler(async (req: Request, res: Response) => {
   const totalUsers = await prisma.user.count();
@@ -39,7 +39,8 @@ export const getUsers = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const updateUserStatus = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const action = typeof req.query.action === 'string' ? req.query.action : undefined;
+  const id = typeof req.params.id === 'string' ? req.params.id : String(req.params.id);
   const { status } = req.body;
 
   if (!['active', 'inactive', 'blocked', 'require_password_change'].includes(status)) {
@@ -162,7 +163,7 @@ export const broadcastNotification = asyncHandler(async (req: Request, res: Resp
   }
 
   // 3. Broadcast qua Socket.io tới TẤT CẢ client
-  const io = getIO();
+  const io = getIo();
   if (io) {
     io.emit('NEW_NOTIFICATION', {
       id: 'GLOBAL_' + Date.now(),

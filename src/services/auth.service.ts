@@ -78,6 +78,7 @@ export class AuthService {
         userId: decoded.userId,
         username: decoded.username,
         status: decoded.status,
+        role: decoded.role,
       };
 
       const newToken = jwt.sign(payload, secret, { expiresIn: "2h" });
