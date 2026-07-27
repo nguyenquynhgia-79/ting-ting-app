@@ -28,3 +28,10 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     next(new UnauthorizedError(error?.message || "Invalid or expired token"));
   }
 };
+
+export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (req.user?.role !== "ADMIN") {
+    return next(new UnauthorizedError("Yêu cầu quyền Quản trị viên (Admin)"));
+  }
+  next();
+};

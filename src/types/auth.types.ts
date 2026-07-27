@@ -2,6 +2,7 @@ export interface JWTPayload {
   userId: string;
   username: string;
   status: string;
+  role: string;
 }
 
 declare global {

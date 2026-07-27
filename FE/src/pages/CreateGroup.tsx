@@ -266,7 +266,7 @@ const CreateGroup = () => {
               <Search size={20} style={{ color: 'var(--text-muted)', marginRight: 12 }} />
               <input 
                 type="text" 
-                placeholder="Tìm bạn bè qua tên hoặc email..."
+                placeholder="Tìm bạn bè qua tên, email hoặc SĐT..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{ flex: 1, backgroundColor: 'transparent', border: 'none', padding: '12px 0', fontSize: 15, outline: 'none', fontWeight: 500, color: 'var(--text-primary)' }}
@@ -304,9 +304,17 @@ const CreateGroup = () => {
                     }}>
                       {user.username.charAt(0).toUpperCase()}
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontWeight: 700, fontSize: 15, margin: 0, color: 'var(--text-primary)' }}>{user.username}</p>
-                      <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{user.email}</p>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontWeight: 800, fontSize: 16, margin: 0, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.username}</p>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: 4, flexWrap: 'wrap' }}>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, fontWeight: 500 }}>{user.email}</p>
+                        {user.phone_number && (
+                          <>
+                            <span style={{ fontSize: 10, color: 'var(--border)' }}>•</span>
+                            <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, fontWeight: 500 }}>{user.phone_number}</p>
+                          </>
+                        )}
+                      </div>
                     </div>
                     <div style={{ 
                       width: 24, height: 24, borderRadius: '50%', 

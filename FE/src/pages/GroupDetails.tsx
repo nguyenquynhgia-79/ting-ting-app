@@ -803,7 +803,7 @@ const GroupDetails = () => {
               <div style={{ position: 'relative', marginBottom: 20 }}>
                 <input
                   type="text"
-                  placeholder="Nhập tên đăng nhập hoặc email..."
+                  placeholder="Nhập tên đăng nhập, email hoặc SĐT..."
                   value={addMemberIdentifier}
                   onChange={(e) => setAddMemberIdentifier(e.target.value)}
                   style={{
@@ -844,9 +844,17 @@ const GroupDetails = () => {
                         <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                           <img src={`https://ui-avatars.com/api/?name=${user.username}&background=E5E7EB&color=374151&bold=true&size=64`} alt={user.username} style={{ width: '100%', height: '100%' }} />
                         </div>
-                        <div>
-                          <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: 'var(--text-primary)' }}>{user.username}</p>
-                          {user.email && <p style={{ margin: 0, fontSize: 12, color: 'var(--text-secondary)' }}>{user.email}</p>}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ margin: 0, fontWeight: 800, fontSize: 16, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.username}</p>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: 4, flexWrap: 'wrap' }}>
+                            {user.email && <p style={{ margin: 0, fontSize: 12, color: 'var(--text-secondary)' }}>{user.email}</p>}
+                            {user.phone_number && (
+                              <>
+                                <span style={{ fontSize: 10, color: 'var(--border)' }}>•</span>
+                                <p style={{ margin: 0, fontSize: 12, color: 'var(--text-secondary)' }}>{user.phone_number}</p>
+                              </>
+                            )}
+                          </div>
                         </div>
                         <div style={{ marginLeft: 'auto' }}>
                           <button style={{ 

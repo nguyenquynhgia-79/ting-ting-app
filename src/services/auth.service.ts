@@ -25,6 +25,7 @@ export class AuthService {
       userId: user.id,
       username: user.username,
       status: user.status,
+      role: (user as any).role || 'USER', // Casting to any temporarily in case prisma types aren't loaded yet
     };
 
     const secret = process.env.JWT_SECRET || "nguyenquynhgia08102004camranhkhanhhoa";
@@ -46,6 +47,7 @@ export class AuthService {
         email: user.email,
         avatar_url: user.avatar_url,
         status: user.status,
+        role: (user as any).role || 'USER',
       },
     };
   }

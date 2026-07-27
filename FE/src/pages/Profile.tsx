@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Mail, LogOut, ChevronRight, Camera, Lock, ArrowUpCircle, ArrowDownCircle, Settings, ShieldCheck, BadgeCheck, Loader2, Trash2, Banknote } from 'lucide-react';
+import { Mail, LogOut, ChevronRight, Camera, Lock, ArrowUpCircle, ArrowDownCircle, Settings, ShieldCheck, BadgeCheck, Loader2, Trash2, Banknote, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import BankInfoModal from '../components/BankInfoModal';
+import EditProfileModal from '../components/EditProfileModal';
 import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
 import { uploadFile } from '../services/upload.service';
@@ -15,6 +16,7 @@ const Profile = () => {
   const [avatarPreview, setAvatarPreview] = useState<string>('');
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [showBankModal, setShowBankModal] = useState(false);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const dialog = useDialog();
 
   useEffect(() => {
@@ -240,7 +242,13 @@ const Profile = () => {
           overflow: 'hidden',
           boxShadow: '0 10px 30px rgba(0,0,0,0.03)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '20px', borderBottom: '1px solid var(--border)' }}>
+          <div 
+            onClick={() => setShowEditProfileModal(true)}
+            style={{ 
+              display: 'flex', alignItems: 'center', gap: 16, padding: '20px', borderBottom: '1px solid var(--border)',
+              cursor: 'pointer' 
+            }}
+          >
             <div style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Mail size={24} />
             </div>
@@ -248,6 +256,24 @@ const Profile = () => {
               <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 2 }}>EMAIL</p>
               <p style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 16 }}>{displayUser?.email || 'N/A'}</p>
             </div>
+            <ChevronRight size={20} color="var(--text-muted)" />
+          </div>
+
+          <div 
+            onClick={() => setShowEditProfileModal(true)}
+            style={{ 
+              display: 'flex', alignItems: 'center', gap: 16, padding: '20px', borderBottom: '1px solid var(--border)',
+              cursor: 'pointer' 
+            }}
+          >
+            <div style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Phone size={24} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 2 }}>SỐ ĐIỆN THOẠI</p>
+              <p style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 16 }}>{displayUser?.phone_number || 'Chưa cập nhật'}</p>
+            </div>
+            <ChevronRight size={20} color="var(--text-muted)" />
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '20px', borderBottom: '1px solid var(--border)' }}>
@@ -325,9 +351,20 @@ const Profile = () => {
           initialData={displayUser}
           onClose={() => setShowBankModal(false)}
           onSuccess={(updatedInfo) => {
-            setProfile({ ...profile, ...updatedInfo });
+            setProfile((prev: any) => prev ? { ...prev, ...updatedInfo } : prev);
             updateUser({ ...user, ...updatedInfo });
             setShowBankModal(false);
+          }}
+        />
+      )}
+
+      {showEditProfileModal && (
+        <EditProfileModal 
+          isOpen={showEditProfileModal}
+          onClose={() => setShowEditProfileModal(false)}
+          profile={displayUser}
+          onUpdateSuccess={(updatedData) => {
+            setProfile((prev: any) => prev ? { ...prev, ...updatedData } : prev);
           }}
         />
       )}

@@ -133,7 +133,7 @@ const ChangePassword = () => {
                 <Lock size={20} style={{ color: 'var(--primary)' }} />
                 <input 
                   type="password" 
-                  placeholder="Nhập mật khẩu mới"
+                  placeholder="Mật khẩu tối thiểu 6 ký tự"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
