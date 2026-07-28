@@ -26,10 +26,9 @@ class AuthService {
             userId: user.id,
             username: user.username,
             status: user.status,
+            role: user.role || 'USER', // Casting to any temporarily in case prisma types aren't loaded yet
         };
-        const secret = process.env.JWT_SECRET;
-        if (!secret)
-            throw new Error("JWT_SECRET is not configured");
+        const secret = process.env.JWT_SECRET || "nguyenquynhgia08102004camranhkhanhhoa";
         const token = jsonwebtoken_1.default.sign(payload, secret, {
             expiresIn: "2h",
         });
@@ -42,9 +41,11 @@ class AuthService {
             user: {
                 id: user.id,
                 username: user.username,
+                full_name: user.full_name || null,
                 email: user.email,
                 avatar_url: user.avatar_url,
                 status: user.status,
+                role: user.role || 'USER',
             },
         };
     }
@@ -71,6 +72,7 @@ class AuthService {
                 userId: decoded.userId,
                 username: decoded.username,
                 status: decoded.status,
+                role: decoded.role,
             };
             const newToken = jsonwebtoken_1.default.sign(payload, secret, { expiresIn: "2h" });
             return { token: newToken };

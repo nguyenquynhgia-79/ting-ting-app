@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.transferOwnership = exports.deleteGroup = exports.updateGroup = exports.updateGroupCover = exports.leaveGroup = exports.getGroupDetails = exports.getMyGroups = exports.joinGroup = exports.createGroup = void 0;
+exports.transferOwnership = exports.deleteGroup = exports.updateGroup = exports.updateGroupCover = exports.leaveGroup = exports.getGroupDetails = exports.getMyGroups = exports.addMember = exports.joinGroup = exports.createGroup = void 0;
 const group_service_1 = require("../services/group.service");
 const error_handler_1 = require("../middleware/error-handler");
 exports.createGroup = (0, error_handler_1.asyncHandler)(async (req, res) => {
@@ -13,6 +13,17 @@ exports.joinGroup = (0, error_handler_1.asyncHandler)(async (req, res) => {
     const { inviteCode } = req.body;
     const userId = req.user.userId;
     const membership = await group_service_1.groupService.joinGroupByCode(inviteCode, userId);
+    res.json(membership);
+});
+exports.addMember = (0, error_handler_1.asyncHandler)(async (req, res) => {
+    const groupId = req.params.id;
+    const { identifier } = req.body;
+    const userId = req.user.userId;
+    if (!identifier) {
+        res.status(400).json({ message: "identifier is required" });
+        return;
+    }
+    const membership = await group_service_1.groupService.addMemberByIdentifier(groupId, identifier, userId);
     res.json(membership);
 });
 exports.getMyGroups = (0, error_handler_1.asyncHandler)(async (req, res) => {

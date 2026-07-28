@@ -13,9 +13,10 @@ const initSocket = (server) => {
     const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5173")
         .split(",")
         .map((o) => o.trim());
+    const corsOrigin = allowedOrigins.includes("*") ? "*" : allowedOrigins;
     io = new socket_io_1.Server(server, {
         cors: {
-            origin: allowedOrigins,
+            origin: corsOrigin,
             methods: ["GET", "POST"],
             credentials: true,
         }

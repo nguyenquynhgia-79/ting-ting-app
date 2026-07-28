@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authenticate, isAdmin } from "../middleware/auth.middleware";
-import { getSystemStats, getUsers, updateUserStatus, getGroups, getLogs, getChartData, broadcastNotification } from "../controllers/admin.controller";
+import { getSystemStats, getUsers, updateUserStatus, getGroups, getLogs, getChartData, broadcastNotification, createUser } from "../controllers/admin.controller";
 
 const router = Router();
 
@@ -10,6 +10,7 @@ router.use(isAdmin);
 
 router.get("/stats", getSystemStats);
 router.get("/users", getUsers);
+router.post("/users", createUser);
 router.get("/groups", getGroups);
 router.get("/logs", getLogs);
 router.get("/chart-data", getChartData);

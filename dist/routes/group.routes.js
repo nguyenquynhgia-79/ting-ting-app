@@ -42,6 +42,7 @@ const router = (0, express_1.Router)();
 router.use(auth_middleware_1.authenticate);
 router.post("/", (0, validate_middleware_1.validateRequest)(group_validation_1.createGroupSchema), groupController.createGroup);
 router.post("/join", (0, validate_middleware_1.validateRequest)(group_validation_1.joinGroupSchema), groupController.joinGroup);
+router.post("/:id/members/add", groupController.addMember);
 router.get("/me", groupController.getMyGroups);
 router.get("/:id", groupController.getGroupDetails);
 router.patch("/:id/cover", (0, validate_middleware_1.validateRequest)(group_validation_1.updateGroupCoverSchema), groupController.updateGroupCover);

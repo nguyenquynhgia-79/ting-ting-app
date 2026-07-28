@@ -41,6 +41,7 @@ const user_validation_1 = require("../validations/user.validation");
 const router = (0, express_1.Router)();
 router.use(auth_middleware_1.authenticate);
 router.get("/search", userController.searchUsers);
+router.put("/profile", userController.updateProfile);
 router.patch("/me/avatar", (0, validate_middleware_1.validateRequest)(user_validation_1.updateAvatarSchema), userController.updateAvatar);
 router.patch("/me/bank", (0, validate_middleware_1.validateRequest)(user_validation_1.updateBankInfoSchema), userController.updateBankInfo);
 exports.default = router;

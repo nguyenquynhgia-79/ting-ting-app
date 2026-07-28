@@ -81,6 +81,62 @@ class GroupService {
         (0, socket_1.sendToUsers)(memberIds, "GROUP_UPDATED", { type: "JOIN", groupId: group.id, userId });
         return newMember;
     }
+    async addMemberByIdentifier(groupId, identifier, addedByUserId) {
+        const group = await database_1.default.group.findUnique({
+            where: { id: groupId },
+        });
+        if (!group)
+            throw new errors_1.NotFoundError("Group not found");
+        if (group.deleted_at)
+            throw new errors_1.NotFoundError("Nhóm này đã bị xóa hoặc lưu trữ");
+        const adderMember = await database_1.default.groupMember.findUnique({
+            where: { group_id_user_id: { group_id: groupId, user_id: addedByUserId } }
+        });
+        if (!adderMember)
+            throw new errors_1.ForbiddenError("Bạn không phải thành viên của nhóm này");
+        const userToAdd = await database_1.default.user.findFirst({
+            where: {
+                OR: [
+                    { username: identifier },
+                    { email: identifier }
+                ]
+            }
+        });
+        if (!userToAdd)
+            throw new errors_1.NotFoundError(`Không tìm thấy người dùng: ${identifier}`);
+        const existingMember = await database_1.default.groupMember.findUnique({
+            where: {
+                group_id_user_id: { group_id: groupId, user_id: userToAdd.id },
+            },
+        });
+        if (existingMember)
+            throw new errors_1.ValidationError("Người dùng này đã ở trong nhóm");
+        const newMember = await database_1.default.groupMember.create({
+            data: {
+                group_id: groupId,
+                user_id: userToAdd.id,
+                balance: 0,
+            },
+        });
+        const { notificationService } = require("./notification.service");
+        if (group.created_by !== addedByUserId && group.created_by !== userToAdd.id) {
+            const adder = await database_1.default.user.findUnique({ where: { id: addedByUserId } });
+            await notificationService.createNotification({
+                userId: group.created_by,
+                type: "GROUP_JOIN",
+                title: "Thành viên mới",
+                message: `${adder?.username} vừa thêm ${userToAdd.username} vào nhóm "${group.name}".`,
+                relatedEntityId: group.id
+            });
+        }
+        const groupMembers = await database_1.default.groupMember.findMany({
+            where: { group_id: groupId },
+            select: { user_id: true }
+        });
+        const memberIds = groupMembers.map(m => m.user_id);
+        (0, socket_1.sendToUsers)(memberIds, "GROUP_UPDATED", { type: "JOIN", groupId, userId: userToAdd.id });
+        return newMember;
+    }
     async getGroupsByUser(userId) {
         return database_1.default.group.findMany({
             where: {

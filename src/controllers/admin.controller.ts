@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/error-handler";
 import prisma from "../config/database";
 import { getIo } from "../socket";
+import { userService } from "../services/user.service";
+import { auditService } from "../services/audit.service";
 
 export const getSystemStats = asyncHandler(async (req: Request, res: Response) => {
   const totalUsers = await prisma.user.count();
@@ -179,4 +181,29 @@ export const broadcastNotification = asyncHandler(async (req: Request, res: Resp
     message: "Gửi thông báo thành công", 
     recipients: activeUsers.length 
   });
+});
+
+export const createUser = asyncHandler(async (req: Request, res: Response) => {
+  const { username, password, email, full_name, role } = req.body;
+  
+  if (!username || !password || !email) {
+    return res.status(400).json({ message: "Vui lòng cung cấp username, password và email" });
+  }
+
+  const user = await userService.createUser({
+    username,
+    email,
+    password_hash: password,
+    full_name,
+    role
+  });
+
+  await auditService.logAction({
+    userId: req.user!.userId,
+    action: "ADMIN_CREATE_USER",
+    details: { createdUserId: user.id, username },
+    req
+  });
+
+  res.status(201).json({ message: "Tạo người dùng thành công", user });
 });

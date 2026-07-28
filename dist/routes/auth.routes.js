@@ -36,11 +36,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const authController = __importStar(require("../controllers/auth.controller"));
 const auth_middleware_1 = require("../middleware/auth.middleware");
-const app_1 = require("../app");
+const rate_limit_middleware_1 = require("../middleware/rate-limit.middleware");
 const validate_middleware_1 = require("../middleware/validate.middleware");
 const auth_validation_1 = require("../validations/auth.validation");
 const router = (0, express_1.Router)();
-router.post("/login", app_1.authLimiter, (0, validate_middleware_1.validateRequest)(auth_validation_1.loginSchema), authController.login);
+router.post("/login", rate_limit_middleware_1.authLimiter, (0, validate_middleware_1.validateRequest)(auth_validation_1.loginSchema), authController.login);
 router.post("/change-password", auth_middleware_1.authenticate, (0, validate_middleware_1.validateRequest)(auth_validation_1.changePasswordSchema), authController.changePassword);
 router.get("/me", auth_middleware_1.authenticate, authController.getMe);
+// Catch-all for /api/auth to prevent falling through to global authenticate middleware
+router.use((req, res) => {
+    res.status(404).json({ status: "error", message: `Cannot ${req.method} /api/auth${req.path}` });
+});
 exports.default = router;

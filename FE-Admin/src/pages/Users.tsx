@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Lock, Unlock, ShieldAlert } from 'lucide-react';
+import { Search, Lock, Unlock, ShieldAlert, UserPlus } from 'lucide-react';
+import AddUserModal from '../components/AddUserModal';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -19,6 +20,7 @@ const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -69,17 +71,26 @@ const Users = () => {
           <p className="text-slate-500 mt-2 font-medium">Danh sách toàn bộ thành viên trên hệ thống</p>
         </div>
         
-        <div className="relative w-full sm:w-96">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search size={18} className="text-slate-400" />
+        <div className="flex gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-80">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search size={18} className="text-slate-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo tên hoặc email..."
+              className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-medium transition-all"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-          <input
-            type="text"
-            placeholder="Tìm kiếm theo tên hoặc email..."
-            className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-medium transition-all"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <button 
+            onClick={() => setIsAddUserModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors shrink-0 shadow-sm"
+          >
+            <UserPlus size={18} />
+            <span className="hidden sm:inline">Thêm tài khoản</span>
+          </button>
         </div>
       </div>
 
@@ -175,6 +186,12 @@ const Users = () => {
           </table>
         </div>
       </div>
+      
+      <AddUserModal 
+        isOpen={isAddUserModalOpen} 
+        onClose={() => setIsAddUserModalOpen(false)} 
+        onSuccess={fetchUsers} 
+      />
     </div>
   );
 };

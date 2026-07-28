@@ -8,6 +8,7 @@ const database_1 = __importDefault(require("../config/database"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const errors_1 = require("../utils/errors");
 const encryption_util_1 = require("../utils/encryption.util");
+const cache_service_1 = require("./cache.service");
 const mapUser = (user) => {
     if (!user)
         return user;
@@ -41,11 +42,16 @@ class UserService {
         return mapUser(user);
     }
     async findById(id) {
-        const user = await database_1.default.user.findUnique({
-            where: { id },
-        });
-        if (!user)
-            throw new errors_1.NotFoundError("User not found");
+        const cacheKey = `user_${id}`;
+        let user = cache_service_1.cacheService.get(cacheKey);
+        if (!user) {
+            user = await database_1.default.user.findUnique({
+                where: { id },
+            });
+            if (!user)
+                throw new errors_1.NotFoundError("User not found");
+            cache_service_1.cacheService.set(cacheKey, user, 300); // cache for 5 minutes
+        }
         return mapUser(user);
     }
     async updatePassword(userId, newPassword) {
@@ -57,6 +63,7 @@ class UserService {
                 status: "active",
             },
         });
+        cache_service_1.cacheService.del(`user_${userId}`);
         return mapUser(user);
     }
     async updateAvatar(userId, avatarUrl) {
@@ -72,6 +79,7 @@ class UserService {
             where: { id: userId },
             data: { avatar_url: avatarUrl },
         });
+        cache_service_1.cacheService.del(`user_${userId}`);
         return mapUser(user);
     }
     async updateBankInfo(userId, data) {
@@ -84,6 +92,7 @@ class UserService {
                 account_name: data.account_name
             }
         });
+        cache_service_1.cacheService.del(`user_${userId}`);
         return mapUser(user);
     }
     async getUserSummary(userId) {

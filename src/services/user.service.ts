@@ -13,7 +13,7 @@ const mapUser = (user: any) => {
 };
 
 export class UserService {
-  async createUser(data: { username: string; email: string; password_hash: string }) {
+  async createUser(data: { username: string; email: string; password_hash: string; full_name?: string; phone_number?: string; role?: any }) {
     const existing = await prisma.user.findFirst({
       where: { OR: [{ username: data.username }, { email: data.email }] },
     });

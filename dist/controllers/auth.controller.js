@@ -46,9 +46,12 @@ exports.getMe = (0, error_handler_1.asyncHandler)(async (req, res) => {
     res.json({
         id: user.id,
         username: user.username,
+        full_name: user.full_name || null,
         email: user.email,
+        phone_number: user.phone_number || null,
         avatar_url: user.avatar_url,
         status: user.status,
+        role: user.role || 'USER',
         bank_name: user.bank_name,
         account_number: user.account_number,
         account_name: user.account_name,
