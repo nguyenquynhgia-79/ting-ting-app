@@ -98,14 +98,14 @@ const Home = () => {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
            <div style={{ 
-             backgroundColor: 'var(--primary)', 
-             padding: '4px', 
-             borderRadius: '8px',
              display: 'flex',
              alignItems: 'center',
-             justifyContent: 'center'
+             justifyContent: 'center',
+             width: 28,
+             height: 28,
+             overflow: 'hidden'
            }}>
-             <Plus size={16} color="white" />
+             <img src="/logoTingTing.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
            </div>
            <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--primary)', letterSpacing: '-0.5px' }}>TingTing</span>
         </div>

@@ -3,6 +3,7 @@ import { Plus, Search, Users as UsersIcon, Loader2, QrCode, Bell } from 'lucide-
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import BottomNav from '../components/BottomNav';
+import NotificationsModal from '../components/NotificationsModal';
 import { useAuth } from '../hooks/useAuth';
 import { useSocket } from '../hooks/useSocket';
 
@@ -10,6 +11,7 @@ const Groups = () => {
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const navigate = useNavigate();
   const { socket } = useSocket();
   const { user: authUser } = useAuth();
@@ -95,6 +97,7 @@ const Groups = () => {
         
         <div style={{ display: 'flex', gap: 8 }}>
           <button 
+            onClick={() => setIsNotifOpen(true)}
             style={{ 
               width: 40, height: 40, borderRadius: '12px', 
               backgroundColor: '#ECFDF5', border: '1px solid #D1FAE5',
@@ -249,6 +252,7 @@ const Groups = () => {
       </div>
 
       <BottomNav />
+      <NotificationsModal isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { Bell, User, ArrowRight } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import BottomNav from '../components/BottomNav';
+import NotificationsModal from '../components/NotificationsModal';
 import { useNavigate } from 'react-router-dom';
 import { useDialog } from '../contexts/DialogContext';
 
@@ -10,6 +11,7 @@ const Ledger = () => {
   const [summary, setSummary] = useState({ total_balance: 0, total_lent: 0, total_borrowed: 0 });
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const navigate = useNavigate();
   const dialog = useDialog();
   
@@ -118,7 +120,9 @@ const Ledger = () => {
           Sổ cái & Thanh toán
         </h2>
 
-        <button style={{ 
+        <button 
+          onClick={() => setIsNotifOpen(true)}
+          style={{ 
           width: 40, height: 40, borderRadius: '12px', 
           backgroundColor: 'var(--surface)', border: '1px solid var(--border)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -335,6 +339,7 @@ const Ledger = () => {
         </div>
       </div>
       <BottomNav />
+      <NotificationsModal isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
     </div>
   );
 };
