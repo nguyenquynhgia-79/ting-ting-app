@@ -15,6 +15,7 @@ router.use(authenticate);
 
 router.post("/", validateRequest(createGroupSchema), groupController.createGroup);
 router.post("/join", validateRequest(joinGroupSchema), groupController.joinGroup);
+router.post("/:id/members/add", groupController.addMember);
 router.get("/me", groupController.getMyGroups);
 router.get("/:id", groupController.getGroupDetails);
 router.patch("/:id/cover", validateRequest(updateGroupCoverSchema), groupController.updateGroupCover);

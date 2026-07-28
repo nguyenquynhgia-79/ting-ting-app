@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "d:\\ADMIN\\TingTing\\logs\\.e612fb29c0ae68b059d790dcc422eb5dd54d386f-audit.json",
+    "files": [
+        {
+            "date": 1785174212128,
+            "name": "d:\\ADMIN\\TingTing\\logs\\combined-2026-07-28.log",
+            "hash": "7b757e765e9a596268c5325271d25069f46d4751f749bec31c36de2333ca9045"
+        }
+    ],
+    "hashType": "sha256"
+}

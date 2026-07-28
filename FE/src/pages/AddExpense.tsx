@@ -4,11 +4,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { uploadFile } from '../services/upload.service';
+import { useDialog } from '../contexts/DialogContext';
 
 const AddExpense = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user: authUser } = useAuth();
+  const dialog = useDialog();
 
   const initialGroupId = location.state?.groupId || '';
 
@@ -104,7 +106,8 @@ const AddExpense = () => {
       return;
     }
 
-    if (!window.confirm(`Bạn có chắc chắn muốn thêm khoản chi ${rawAmount.toLocaleString('vi-VN')}đ cho "${description.trim()}" không?`)) {
+    const isConfirmed = await dialog.confirm(`Bạn có chắc chắn muốn thêm khoản chi ${rawAmount.toLocaleString('vi-VN')}đ cho "${description.trim()}" không?`);
+    if (!isConfirmed) {
       return;
     }
 
@@ -135,7 +138,7 @@ const AddExpense = () => {
           await api.patch(`/expenses/${expenseRes.data.id}`, { proof_url: proofUrl });
         } catch (uploadErr) {
           console.error('Proof upload failed (non-fatal)', uploadErr);
-          alert('Tạo chi tiêu thành công nhưng lỗi upload ảnh hóa đơn!');
+          dialog.alert({ message: 'Tạo chi tiêu thành công nhưng lỗi upload ảnh hóa đơn!', type: 'error' });
         }
       }
 
@@ -152,10 +155,11 @@ const AddExpense = () => {
       flex: 1,
       display: 'flex',
       flexDirection: 'column',
-      height: '100vh',
+      minHeight: '100dvh',
       backgroundColor: 'var(--background)',
       color: 'var(--text-primary)',
       fontFamily: 'system-ui, -apple-system, sans-serif',
+      paddingBottom: '24px',
     }}>
 
       {/* ── HEADER ── */}
@@ -209,7 +213,7 @@ const AddExpense = () => {
         </button>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
         {/* ── AMOUNT CARD ── */}
         <div style={{
@@ -420,17 +424,15 @@ const AddExpense = () => {
                     }}>
                       {shareAmount.toLocaleString('vi-VN')}đ
                     </span>
-                    {!isMe && (
-                      <button
-                        onClick={() => toggleParticipant(p.userId)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}
-                      >
-                        {p.included
-                          ? <ToggleRight size={32} color="var(--primary)" strokeWidth={1.5} />
-                          : <ToggleLeft size={32} color="var(--border)" strokeWidth={1.5} />
-                        }
-                      </button>
-                    )}
+                    <button
+                      onClick={() => toggleParticipant(p.userId)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}
+                    >
+                      {p.included
+                        ? <ToggleRight size={32} color="var(--primary)" strokeWidth={1.5} />
+                        : <ToggleLeft size={32} color="var(--border)" strokeWidth={1.5} />
+                      }
+                    </button>
                   </div>
                 ) : (
                   /* CUSTOM: editable */

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Crown, X } from 'lucide-react';
 import api from '../services/api';
+import { useDialog } from '../contexts/DialogContext';
 
 interface Member {
   user_id: string;
@@ -23,6 +24,7 @@ interface Props {
 const TransferOwnershipModal: React.FC<Props> = ({ groupId, groupName, members, onSuccess, onClose, isLeaving = false }) => {
   const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const dialog = useDialog();
 
   const handleTransfer = async () => {
     if (!selected) return;
@@ -31,7 +33,7 @@ const TransferOwnershipModal: React.FC<Props> = ({ groupId, groupName, members, 
       await api.patch(`/groups/${groupId}/transfer-owner`, { newOwnerId: selected });
       onSuccess();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Chuyển quyền thất bại');
+      dialog.alert({ message: err.response?.data?.message || 'Chuyển quyền thất bại', type: 'error' });
     } finally {
       setLoading(false);
     }

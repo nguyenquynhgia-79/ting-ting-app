@@ -4,11 +4,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { uploadFile } from '../services/upload.service';
+import { useDialog } from '../contexts/DialogContext';
 
 const EditExpense = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
+  const dialog = useDialog();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -109,7 +111,8 @@ const EditExpense = () => {
       return;
     }
 
-    if (!window.confirm(`Bạn có chắc chắn muốn cập nhật khoản chi này không?`)) {
+    const isConfirmed = await dialog.confirm(`Bạn có chắc chắn muốn cập nhật khoản chi này không?`);
+    if (!isConfirmed) {
       return;
     }
 
@@ -132,7 +135,7 @@ const EditExpense = () => {
           });
         } catch (uploadErr) {
           console.error('Proof upload failed', uploadErr);
-          alert('Lỗi upload ảnh hóa đơn!');
+          dialog.alert({ message: 'Lỗi upload ảnh hóa đơn!', type: 'error' });
         }
       }
 
@@ -154,7 +157,8 @@ const EditExpense = () => {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa khoản chi này?')) return;
+    const isConfirmed = await dialog.confirm('Bạn có chắc chắn muốn xóa khoản chi này?');
+    if (!isConfirmed) return;
     setSaving(true);
     try {
       await api.delete(`/expenses/${id}`);
@@ -175,7 +179,7 @@ const EditExpense = () => {
 
   return (
     <div style={{
-      flex: 1, display: 'flex', flexDirection: 'column', height: '100vh',
+      flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100dvh', paddingBottom: '24px',
       backgroundColor: 'var(--background)', color: 'var(--text-primary)',
       fontFamily: 'system-ui, -apple-system, sans-serif',
     }}>
@@ -217,7 +221,7 @@ const EditExpense = () => {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         
         {error && (
            <div style={{ padding: '12px 16px', borderRadius: 12, backgroundColor: '#FEF2F2', color: '#EF4444', fontWeight: 600, fontSize: 14, border: '1px solid #FECACA' }}>
@@ -311,11 +315,9 @@ const EditExpense = () => {
                 {splitMode === 'EQUAL' ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
                     <span style={{ fontSize: 15, fontWeight: 600, color: p.included ? 'var(--text-primary)' : 'var(--text-secondary)', minWidth: 80, textAlign: 'right' }}>{shareAmount.toLocaleString('vi-VN')}đ</span>
-                    {!isMe && (
-                      <button onClick={() => toggleParticipant(p.userId)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
-                        {p.included ? <ToggleRight size={32} color="var(--primary)" strokeWidth={1.5} /> : <ToggleLeft size={32} color="var(--border)" strokeWidth={1.5} />}
-                      </button>
-                    )}
+                    <button onClick={() => toggleParticipant(p.userId)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
+                      {p.included ? <ToggleRight size={32} color="var(--primary)" strokeWidth={1.5} /> : <ToggleLeft size={32} color="var(--border)" strokeWidth={1.5} />}
+                    </button>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>

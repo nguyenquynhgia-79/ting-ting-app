@@ -3,6 +3,7 @@ import { User, Lock, Eye, EyeOff, Loader2, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
+import { useDialog } from '../contexts/DialogContext';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -13,6 +14,7 @@ const Login = () => {
   
   const navigate = useNavigate();
   const { login } = useAuth();
+  const dialog = useDialog();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,8 +180,8 @@ const Login = () => {
           Chưa có tài khoản?{' '}
           <button 
             type="button"
-            style={{ color: 'var(--primary)', fontWeight: 700, background: 'none', border: 'none', fontSize: 15 }}
-            onClick={() => alert('Vui lòng liên hệ Admin để cấp tài khoản.')}
+            style={{ color: 'var(--primary)', fontWeight: 700, background: 'none', border: 'none', fontSize: 15, cursor: 'pointer' }}
+            onClick={() => dialog.alert('Vui lòng liên hệ Admin để cấp tài khoản.')}
           >
             Liên hệ Admin
           </button>

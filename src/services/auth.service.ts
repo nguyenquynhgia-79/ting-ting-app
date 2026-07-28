@@ -25,6 +25,7 @@ export class AuthService {
       userId: user.id,
       username: user.username,
       status: user.status,
+      role: (user as any).role || 'USER', // Casting to any temporarily in case prisma types aren't loaded yet
     };
 
     const secret = process.env.JWT_SECRET || "nguyenquynhgia08102004camranhkhanhhoa";
@@ -43,9 +44,11 @@ export class AuthService {
       user: {
         id: user.id,
         username: user.username,
+        full_name: (user as any).full_name || null,
         email: user.email,
         avatar_url: user.avatar_url,
         status: user.status,
+        role: (user as any).role || 'USER',
       },
     };
   }
@@ -76,6 +79,7 @@ export class AuthService {
         userId: decoded.userId,
         username: decoded.username,
         status: decoded.status,
+        role: decoded.role,
       };
 
       const newToken = jwt.sign(payload, secret, { expiresIn: "2h" });

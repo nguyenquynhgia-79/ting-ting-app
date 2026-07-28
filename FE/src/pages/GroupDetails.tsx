@@ -10,11 +10,13 @@ import { useSocket } from '../hooks/useSocket';
 import { uploadFile } from '../services/upload.service';
 import { QRCodeSVG } from 'qrcode.react';
 import TransferOwnershipModal from '../components/TransferOwnershipModal';
+import { useDialog } from '../contexts/DialogContext';
 
 const GroupDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
+  const dialog = useDialog();
   
   const [group, setGroup] = useState<any>(null);
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -24,9 +26,34 @@ const GroupDetails = () => {
   const [showQR, setShowQR] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
   const [coverPreview, setCoverPreview] = useState<string>('');
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [addMemberIdentifier, setAddMemberIdentifier] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isAddingMember, setIsAddingMember] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<any>(null);
-  const [showMenu, setShowMenu] = useState(false);
   const [transferMode, setTransferMode] = useState<'TRANSFER' | 'LEAVE' | null>(null);
+  const [showMenu, setShowMenu] = useState(false);
+
+  useEffect(() => {
+    if (!addMemberIdentifier.trim() || addMemberIdentifier.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await api.get(`/users/search?q=${addMemberIdentifier.trim()}`);
+        setSearchResults(res.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 400); // 400ms debounce
+
+    return () => clearTimeout(timer);
+  }, [addMemberIdentifier]);
   
   const handleCopyCode = () => {
     if (group?.invite_code) {
@@ -71,7 +98,7 @@ const GroupDetails = () => {
       if (data.groupId === id) {
         console.log('Group info updated real-time:', data);
         if (data.type === 'DELETE') {
-          alert('Nhóm này đã bị xóa bởi chủ nhóm.');
+          dialog.alert('Nhóm này đã bị xóa bởi chủ nhóm.');
           navigate('/groups');
         } else {
           fetchGroupData();
@@ -86,25 +113,27 @@ const GroupDetails = () => {
   }, [socket, id]);
 
   const handleDeleteExpense = async (expenseId: string) => {
-    if (!window.confirm("Bạn có chắc muốn xóa khoản chi này? Mọi chia sẻ sẽ được hoàn tác.")) return;
+    const isConfirmed = await dialog.confirm("Bạn có chắc muốn xóa khoản chi này? Mọi chia sẻ sẽ được hoàn tác.");
+    if (!isConfirmed) return;
     try {
       await api.delete(`/expenses/${expenseId}`);
       // Refresh data
       fetchGroupData();
     } catch (err: any) {
       console.error("Error deleting group", err);
-      alert(err?.response?.data?.message || "Xóa nhóm thất bại");
+      dialog.alert({ message: err?.response?.data?.message || "Xóa nhóm thất bại", type: 'error' });
     }
   };
 
   const handleRemindCreator = async (expenseId: string) => {
-    if (!window.confirm("Bạn muốn gửi thông báo nhắc nhở người tạo kiểm tra lại khoản chi này?")) return;
+    const isConfirmed = await dialog.confirm("Bạn muốn gửi thông báo nhắc nhở người tạo kiểm tra lại khoản chi này?");
+    if (!isConfirmed) return;
     try {
       await api.post(`/expenses/${expenseId}/remind`);
-      alert("Đã gửi yêu cầu xem xét lại chi tiêu cho người tạo!");
+      dialog.alert({ message: "Đã gửi yêu cầu xem xét lại chi tiêu cho người tạo!", type: 'success' });
     } catch (err: any) {
       console.error("Error reminding creator", err);
-      alert(err?.response?.data?.message || "Gửi yêu cầu thất bại");
+      dialog.alert({ message: err?.response?.data?.message || "Gửi yêu cầu thất bại", type: 'error' });
     }
   };
 
@@ -112,15 +141,16 @@ const GroupDetails = () => {
     // Check balance first
     const unsettled = group?.members?.filter((m: any) => Math.abs(Number(m.balance)) > 0.01) || [];
     if (unsettled.length > 0) {
-      alert(`Không thể xóa nhóm!\n\nVẫn còn ${unsettled.length} thành viên chưa tất toán nợ:\n${unsettled.map((m: any) => `• ${m.user?.username}: ${Number(m.balance).toLocaleString()}đ`).join('\n')}\n\nVui lòng giải quyết tất cả khoản nợ trước khi xóa nhóm.`);
+      dialog.alert({ message: `Không thể xóa nhóm!\n\nVẫn còn ${unsettled.length} thành viên chưa tất toán nợ:\n${unsettled.map((m: any) => `• ${m.user?.full_name || m.user?.username}: ${Number(m.balance).toLocaleString()}đ`).join('\n')}\n\nVui lòng giải quyết tất cả khoản nợ trước khi xóa nhóm.`, type: 'error' });
       return;
     }
-    if (!window.confirm("Tất cả khoản nợ đã tất toán.\nBạn có chắc muốn XÓA NHÓM này không?\nNhóm sẽ bị lưu trữ và biến mất khỏi danh sách.")) return;
+    const isConfirmed = await dialog.confirm("Tất cả khoản nợ đã tất toán.\nBạn có chắc muốn XÓA NHÓM này không?\nNhóm sẽ bị lưu trữ và biến mất khỏi danh sách.");
+    if (!isConfirmed) return;
     try {
       await api.delete(`/groups/${id}`);
       navigate('/groups');
     } catch (err: any) {
-      alert(err.response?.data?.message || "Xóa nhóm thất bại");
+      dialog.alert({ message: err.response?.data?.message || "Xóa nhóm thất bại", type: 'error' });
     }
   };
 
@@ -131,9 +161,9 @@ const GroupDetails = () => {
 
     if (Math.abs(myBalNow) > 0.01) {
       if (myBalNow < 0) {
-        alert(`Bạn chưa thể rời nhóm!\n\nBạn đang nợ nhóm ${Math.abs(myBalNow).toLocaleString()}đ.\nVui lòng thanh toán khoản nợ trước khi rời nhóm.`);
+        dialog.alert({ message: `Bạn chưa thể rời nhóm!\n\nBạn đang nợ nhóm ${Math.abs(myBalNow).toLocaleString()}đ.\nVui lòng thanh toán khoản nợ trước khi rời nhóm.`, type: 'error' });
       } else {
-        alert(`Bạn chưa thể rời nhóm!\n\nNhóm đang nợ bạn ${Math.abs(myBalNow).toLocaleString()}đ.\nVui lòng thu hồi khoản tiền trước khi rời nhóm.`);
+        dialog.alert({ message: `Bạn chưa thể rời nhóm!\n\nNhóm đang nợ bạn ${Math.abs(myBalNow).toLocaleString()}đ.\nVui lòng thu hồi khoản tiền trước khi rời nhóm.`, type: 'error' });
       }
       return;
     }
@@ -151,17 +181,18 @@ const GroupDetails = () => {
     const confirmMsg = isLastMember
       ? 'Bạn là thành viên cuối cùng. Rời đi sẽ giải tán nhóm này. Bạn có chắc không?'
       : 'Bạn có chắc muốn rời khỏi nhóm này?\nLịch sử chi tiêu của bạn vẫn được lưu lại.';
-    if (!window.confirm(confirmMsg)) return;
+    
+    const isConfirmed = await dialog.confirm(confirmMsg);
+    if (!isConfirmed) return;
 
     try {
       await api.delete(`/groups/${id}/leave`);
       navigate('/groups');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Rời nhóm thất bại');
+      dialog.alert({ message: err.response?.data?.message || 'Rời nhóm thất bại', type: 'error' });
     }
   };
 
-  // Called after transfer ownership succeeds
   const handleTransferSuccess = async () => {
     const mode = transferMode;
     setTransferMode(null);
@@ -171,11 +202,29 @@ const GroupDetails = () => {
         await api.delete(`/groups/${id}/leave`);
         navigate('/groups');
       } catch (err: any) {
-        alert(err.response?.data?.message || 'Rời nhóm thất bại sau khi chuyển quyền');
+        dialog.alert({ message: err.response?.data?.message || 'Rời nhóm thất bại sau khi chuyển quyền', type: 'error' });
       }
     } else {
       // Just fetch group data again if it's only a transfer
       fetchGroupData();
+    }
+  };
+
+  const handleAddMemberSubmit = async (identifierToAdd?: string) => {
+    const target = identifierToAdd || addMemberIdentifier;
+    if (!target.trim()) return;
+    setIsAddingMember(true);
+    try {
+      await api.post(`/groups/${id}/members/add`, { identifier: target.trim() });
+      setAddMemberIdentifier('');
+      setSearchResults([]);
+      setShowAddMember(false);
+      fetchGroupData();
+      dialog.alert({ message: 'Thêm thành viên thành công!', type: 'success' });
+    } catch (err: any) {
+      dialog.alert({ message: err?.response?.data?.message || 'Thêm thành viên thất bại', type: 'error' });
+    } finally {
+      setIsAddingMember(false);
     }
   };
 
@@ -191,7 +240,7 @@ const GroupDetails = () => {
       setGroup((prev: any) => ({ ...prev, qr_code_url: publicUrl }));
     } catch (err) {
       console.error('Cover upload failed', err);
-      alert('Upload ảnh bìa thất bại');
+      dialog.alert({ message: 'Upload ảnh bìa thất bại', type: 'error' });
       setCoverPreview('');
     } finally {
       setCoverUploading(false);
@@ -199,14 +248,16 @@ const GroupDetails = () => {
   };
 
   const handleRemoveCover = async () => {
-    if (!window.confirm('Bạn có chắc muốn xóa ảnh bìa?')) return;
+    const isConfirmed = await dialog.confirm('Bạn có chắc muốn xóa ảnh bìa?');
+    if (!isConfirmed) return;
+    
     setCoverUploading(true);
     try {
       await api.patch(`/groups/${group.id}/cover`, { coverUrl: null });
       setGroup((prev: any) => ({ ...prev, qr_code_url: null }));
     } catch (err) {
       console.error('Remove cover failed', err);
-      alert('Xóa ảnh bìa thất bại');
+      dialog.alert({ message: 'Xóa ảnh bìa thất bại', type: 'error' });
     } finally {
       setCoverUploading(false);
     }
@@ -604,6 +655,23 @@ const GroupDetails = () => {
               <span>{group.members.length} thành viên</span>
             </div>
             <div 
+              onClick={() => setShowAddMember(true)}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '6px', 
+                background: 'rgba(255, 255, 255, 0.25)', 
+                padding: '6px 12px', 
+                borderRadius: '20px',
+                fontSize: '13px',
+                cursor: 'pointer',
+                fontWeight: 600
+              }}
+            >
+              <Plus size={14} />
+              <span>Thêm</span>
+            </div>
+            <div 
               onClick={handleCopyCode}
               style={{ 
                 display: 'flex', 
@@ -697,6 +765,142 @@ const GroupDetails = () => {
             </div>
           </div>
         )}
+
+        {/* Add Member Modal Overlay */}
+        {showAddMember && (
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0, left: 0, right: 0, bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.6)',
+              backdropFilter: 'blur(4px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 2000,
+              padding: '20px'
+            }}
+            onClick={() => setShowAddMember(false)}
+          >
+            <div 
+              style={{
+                backgroundColor: 'white',
+                padding: '24px',
+                borderRadius: '24px',
+                width: '100%',
+                maxWidth: '360px',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>Thêm thành viên</h3>
+                <button onClick={() => setShowAddMember(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 4 }}>
+                  <X size={20} />
+                </button>
+              </div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 20 }}>
+                Nhập Username hoặc Email của người bạn muốn thêm vào nhóm này.
+              </p>
+              
+              <div style={{ position: 'relative', marginBottom: 20 }}>
+                <input
+                  type="text"
+                  placeholder="Nhập tên đăng nhập, email hoặc SĐT..."
+                  value={addMemberIdentifier}
+                  onChange={(e) => setAddMemberIdentifier(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    backgroundColor: 'var(--background)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 12,
+                    fontSize: 15,
+                    fontWeight: 500,
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+                
+                {isSearching && (
+                  <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)' }}>
+                    <Loader2 size={16} className="animate-spin" color="var(--text-secondary)" />
+                  </div>
+                )}
+                
+                {/* Search Results Dropdown */}
+                {searchResults.length > 0 && (
+                  <div style={{ 
+                    position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 8,
+                    backgroundColor: 'white', borderRadius: 12, border: '1px solid var(--border)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)', overflow: 'hidden', zIndex: 10
+                  }}>
+                    {searchResults.map(user => (
+                      <div 
+                        key={user.id}
+                        onClick={() => handleAddMemberSubmit(user.username)}
+                        style={{
+                          padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12,
+                          borderBottom: '1px solid var(--border)', cursor: 'pointer'
+                        }}
+                      >
+                        <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                          <img src={`https://ui-avatars.com/api/?name=${user.full_name || user.username}&background=E5E7EB&color=374151&bold=true&size=64`} alt={user.full_name || user.username} style={{ width: '100%', height: '100%' }} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ margin: 0, fontWeight: 800, fontSize: 16, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.full_name || user.username}</p>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: 4, flexWrap: 'wrap' }}>
+                            {user.email && <p style={{ margin: 0, fontSize: 12, color: 'var(--text-secondary)' }}>{user.email}</p>}
+                            {user.phone_number && (
+                              <>
+                                <span style={{ fontSize: 10, color: 'var(--border)' }}>•</span>
+                                <p style={{ margin: 0, fontSize: 12, color: 'var(--text-secondary)' }}>{user.phone_number}</p>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ marginLeft: 'auto' }}>
+                          <button style={{ 
+                            background: 'none', border: 'none', padding: '4px 12px', borderRadius: 20, 
+                            backgroundColor: 'var(--primary-light)', color: 'var(--primary)', 
+                            fontWeight: 700, fontSize: 12, cursor: 'pointer' 
+                          }}>
+                            Thêm
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <button 
+                onClick={() => handleAddMemberSubmit()}
+                disabled={isAddingMember || !addMemberIdentifier.trim()}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: 12,
+                  backgroundColor: 'var(--primary)',
+                  color: 'white',
+                  border: 'none',
+                  fontWeight: 700,
+                  fontSize: 15,
+                  cursor: (isAddingMember || !addMemberIdentifier.trim()) ? 'not-allowed' : 'pointer',
+                  opacity: (isAddingMember || !addMemberIdentifier.trim()) ? 0.7 : 1,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: 8
+                }}
+              >
+                {isAddingMember && <Loader2 size={16} className="animate-spin" />}
+                Thêm vào nhóm
+              </button>
+            </div>
+          </div>
+        )}
+
         <div style={{ padding: '0 20px' }}>
           {activeTab === 'EXPENSES' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -731,7 +935,7 @@ const GroupDetails = () => {
                     <h4 style={{ fontWeight: 700, fontSize: 16, margin: '0 0 4px' }}>{exp.description || 'Chi phí'}</h4>
                     <p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ fontWeight: 600, color: 'var(--primary)' }}>
-                        {exp.payer.username === authUser?.username ? 'Bạn' : exp.payer.username}
+                        {exp.payer.id === authUser?.id ? 'Bạn' : (exp.payer.full_name || exp.payer.username)}
                       </span> trả {Number(exp.amount).toLocaleString()}đ
                       {exp.proof_url && <Camera size={14} style={{ color: 'var(--primary)', opacity: 0.7 }} />}
                     </p>
@@ -911,7 +1115,7 @@ const GroupDetails = () => {
                           {split.user.avatar_url ? (
                             <img 
                               src={split.user.avatar_url} 
-                              alt={split.user.username} 
+                              alt={split.user.full_name || split.user.username} 
                               style={{ width: 32, height: 32, borderRadius: '10px', objectFit: 'cover', filter: isStillMember ? 'none' : 'grayscale(100%)' }} 
                             />
                           ) : (
@@ -922,7 +1126,7 @@ const GroupDetails = () => {
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                               fontSize: 14, fontWeight: 700
                             }}>
-                              {split.user.username[0].toUpperCase()}
+                              {(split.user.full_name || split.user.username)[0].toUpperCase()}
                             </div>
                           )}
                           <span style={{ 
@@ -932,7 +1136,7 @@ const GroupDetails = () => {
                               ? (split.user_id === selectedExpense.payer_id ? 'var(--primary)' : 'var(--text-primary)')
                               : '#9CA3AF'
                           }}>
-                            {split.user.username === authUser?.username ? 'Bạn' : split.user.username}
+                            {split.user.id === authUser?.id ? 'Bạn' : (split.user.full_name || split.user.username)}
                             {split.user_id === selectedExpense.payer_id && <span style={{ fontSize: 11, marginLeft: 6, opacity: 0.7 }}>(Người trả)</span>}
                             {!isStillMember && <span style={{ fontSize: 11, marginLeft: 6, fontStyle: 'italic' }}>(Đã rời nhóm)</span>}
                           </span>
@@ -949,7 +1153,7 @@ const GroupDetails = () => {
             
             <div style={{ padding: '16px 20px', backgroundColor: 'var(--background)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)' }}>
-                Được trả bởi <strong>{selectedExpense.payer.username}</strong> vào {new Date(selectedExpense.created_at).toLocaleString('vi-VN')}
+                Được trả bởi <strong>{selectedExpense.payer.id === authUser?.id ? 'Bạn' : (selectedExpense.payer.full_name || selectedExpense.payer.username)}</strong> vào {new Date(selectedExpense.created_at).toLocaleString('vi-VN')}
               </p>
               <div style={{ display: 'flex', gap: 8 }}>
                 {selectedExpense.payer_id === authUser?.id ? (

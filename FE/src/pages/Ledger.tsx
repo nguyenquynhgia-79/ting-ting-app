@@ -4,12 +4,14 @@ import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import BottomNav from '../components/BottomNav';
 import { useNavigate } from 'react-router-dom';
+import { useDialog } from '../contexts/DialogContext';
 
 const Ledger = () => {
   const [summary, setSummary] = useState({ total_balance: 0, total_lent: 0, total_borrowed: 0 });
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const dialog = useDialog();
   
   const { user: authUser } = useAuth();
 
@@ -34,22 +36,24 @@ const Ledger = () => {
   }, [authUser]);
 
   const handleConfirmPayment = async (paymentId: string, amount: number, payerName: string) => {
-    if (!window.confirm(`Bạn xác nhận ĐÃ NHẬN ĐƯỢC ${amount.toLocaleString('vi-VN')}đ từ ${payerName}?\nHành động này không thể hoàn tác.`)) return;
+    const isConfirmed = await dialog.confirm(`Bạn xác nhận ĐÃ NHẬN ĐƯỢC ${amount.toLocaleString('vi-VN')}đ từ ${payerName}?\nHành động này không thể hoàn tác.`);
+    if (!isConfirmed) return;
     try {
       await api.patch(`/payments/${paymentId}/confirm`);
       fetchData();
     } catch (error) {
-      alert('Không thể xác nhận thanh toán. Vui lòng thử lại sau.');
+      dialog.alert({ message: 'Không thể xác nhận thanh toán. Vui lòng thử lại sau.', type: 'error' });
     }
   };
 
   const handleRejectPayment = async (paymentId: string, amount: number, payerName: string) => {
-    if (!window.confirm(`Bạn CHƯA NHẬN ĐƯỢC tiền từ ${payerName} và muốn TỪ CHỐI giao dịch ${amount.toLocaleString('vi-VN')}đ này?`)) return;
+    const isConfirmed = await dialog.confirm(`Bạn CHƯA NHẬN ĐƯỢC tiền từ ${payerName} và muốn TỪ CHỐI giao dịch ${amount.toLocaleString('vi-VN')}đ này?`);
+    if (!isConfirmed) return;
     try {
       await api.patch(`/payments/${paymentId}/reject`);
       fetchData();
     } catch (error) {
-      alert('Không thể từ chối thanh toán. Vui lòng thử lại sau.');
+      dialog.alert({ message: 'Không thể từ chối thanh toán. Vui lòng thử lại sau.', type: 'error' });
     }
   };
 
@@ -102,7 +106,7 @@ const Ledger = () => {
           {authUser?.avatar_url ? (
             <img src={authUser.avatar_url} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
-            <img src={`https://ui-avatars.com/api/?name=${authUser?.username || 'User'}&background=10B981&color=fff`} alt="Avatar" style={{ width: '100%', height: '100%' }} />
+            <img src={`https://ui-avatars.com/api/?name=${authUser?.full_name || authUser?.username || 'User'}&background=10B981&color=fff`} alt="Avatar" style={{ width: '100%', height: '100%' }} />
           )}
         </div>
 
@@ -222,7 +226,7 @@ const Ledger = () => {
                               }}>
                                 <User size={20} color="var(--text-muted)" />
                               </div>
-                              <span style={{ fontWeight: 700, fontSize: 16 }}>{otherUser.username}</span>
+                              <span style={{ fontWeight: 700, fontSize: 16 }}>{otherUser.full_name || otherUser.username}</span>
                               <ArrowRight size={16} color="var(--text-muted)" />
                               <span style={{ 
                                 fontSize: 12, fontWeight: 700, color: 'var(--primary)', 
@@ -249,7 +253,7 @@ const Ledger = () => {
                               }}>
                                 <User size={20} color="var(--text-muted)" />
                               </div>
-                              <span style={{ fontWeight: 700, fontSize: 16 }}>{otherUser.username}</span>
+                              <span style={{ fontWeight: 700, fontSize: 16 }}>{otherUser.full_name || otherUser.username}</span>
                             </>
                           )}
                         </div>

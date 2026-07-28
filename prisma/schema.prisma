@@ -10,9 +10,12 @@ model User {
   id               String         @id @default(uuid())
   username         String         @unique
   email            String         @unique
+  full_name        String?
+  phone_number     String?        @unique
   password_hash    String
   avatar_url       String?
   status           UserStatus     @default(require_password_change)
+  role             Role           @default(USER)
   created_at       DateTime       @default(now())
   bank_name        String?
   account_number   String?
@@ -141,6 +144,12 @@ enum UserStatus {
   require_password_change
   active
   inactive
+  blocked
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 enum SplitType {

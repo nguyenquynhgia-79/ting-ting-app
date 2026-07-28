@@ -10,5 +10,6 @@ export default defineConfig({
   },
   datasource: {
     url: process.env["DATABASE_URL"] || "postgresql://tingting_user:tingting_password@localhost:5433/tingting_db?schema=public",
+    directUrl: process.env["DIRECT_URL"] || undefined,
   },
 });

@@ -52,9 +52,12 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
     res.json({
       id: user.id,
       username: user.username,
+      full_name: (user as any).full_name || null,
       email: user.email,
+      phone_number: (user as any).phone_number || null,
       avatar_url: user.avatar_url,
       status: user.status,
+      role: (user as any).role || 'USER',
       bank_name: user.bank_name,
       account_number: user.account_number,
       account_name: user.account_name,

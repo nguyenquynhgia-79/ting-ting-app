@@ -3,11 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check, ArrowRight, User, Loader2, Wallet, Bell, CheckCircle, X } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
+import { useDialog } from '../contexts/DialogContext';
 
 const SettleUp = () => {
   const { id: groupId } = useParams();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
+  const dialog = useDialog();
   
   const [debts, setDebts] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
@@ -43,7 +45,8 @@ const SettleUp = () => {
 
   const handleSettle = async () => {
     if (!selectedDebt || !amount) return;
-    if (!window.confirm(`Bạn có chắc chắn muốn xác nhận đã chuyển khoản ${parseFloat(amount).toLocaleString('vi-VN')}đ cho ${selectedDebt.to_account_name || selectedDebt.to_name}?`)) return;
+    const isConfirmed = await dialog.confirm(`Bạn có chắc chắn muốn xác nhận đã chuyển khoản ${parseFloat(amount).toLocaleString('vi-VN')}đ cho ${selectedDebt.to_account_name || selectedDebt.to_name}?`);
+    if (!isConfirmed) return;
     
     setSubmitting(true);
     try {
@@ -64,24 +67,26 @@ const SettleUp = () => {
   };
 
   const handleConfirmPayment = async (paymentId: string) => {
-    if (!window.confirm("Bạn xác nhận ĐÃ NHẬN ĐƯỢC tiền cho giao dịch này? Hành động này không thể hoàn tác.")) return;
+    const isConfirmed = await dialog.confirm("Bạn xác nhận ĐÃ NHẬN ĐƯỢC tiền cho giao dịch này? Hành động này không thể hoàn tác.");
+    if (!isConfirmed) return;
     try {
       await api.patch(`/payments/${paymentId}/confirm`);
       fetchData();
     } catch (err) {
       console.error("Error confirming payment", err);
-      alert("Xác nhận thất bại");
+      dialog.alert({ message: "Xác nhận thất bại", type: 'error' });
     }
   };
 
   const handleRejectPayment = async (paymentId: string) => {
-    if (!window.confirm("Bạn CHƯA NHẬN ĐƯỢC tiền và muốn TỪ CHỐI giao dịch này?")) return;
+    const isConfirmed = await dialog.confirm("Bạn CHƯA NHẬN ĐƯỢC tiền và muốn TỪ CHỐI giao dịch này?");
+    if (!isConfirmed) return;
     try {
       await api.patch(`/payments/${paymentId}/reject`);
       fetchData();
     } catch (err) {
       console.error("Error rejecting payment", err);
-      alert("Từ chối thất bại");
+      dialog.alert({ message: "Từ chối thất bại", type: 'error' });
     }
   };
 

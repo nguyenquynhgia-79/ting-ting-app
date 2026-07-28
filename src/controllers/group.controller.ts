@@ -16,6 +16,20 @@ export const joinGroup = asyncHandler(async (req: Request, res: Response) => {
   res.json(membership);
 });
 
+export const addMember = asyncHandler(async (req: Request, res: Response) => {
+  const groupId = req.params.id as string;
+  const { identifier } = req.body;
+  const userId = req.user!.userId;
+  
+  if (!identifier) {
+    res.status(400).json({ message: "identifier is required" });
+    return;
+  }
+  
+  const membership = await groupService.addMemberByIdentifier(groupId, identifier, userId);
+  res.json(membership);
+});
+
 export const getMyGroups = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user!.userId;
   const groups = await groupService.getGroupsByUser(userId);

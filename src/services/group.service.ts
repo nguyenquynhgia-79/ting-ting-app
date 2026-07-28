@@ -90,6 +90,67 @@ export class GroupService {
     return newMember;
   }
 
+  async addMemberByIdentifier(groupId: string, identifier: string, addedByUserId: string) {
+    const group = await prisma.group.findUnique({
+      where: { id: groupId },
+    });
+
+    if (!group) throw new NotFoundError("Group not found");
+    if (group.deleted_at) throw new NotFoundError("Nhóm này đã bị xóa hoặc lưu trữ");
+
+    const adderMember = await prisma.groupMember.findUnique({
+      where: { group_id_user_id: { group_id: groupId, user_id: addedByUserId } }
+    });
+    if (!adderMember) throw new ForbiddenError("Bạn không phải thành viên của nhóm này");
+
+    const userToAdd = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: identifier },
+          { email: identifier }
+        ]
+      }
+    });
+    if (!userToAdd) throw new NotFoundError(`Không tìm thấy người dùng: ${identifier}`);
+
+    const existingMember = await prisma.groupMember.findUnique({
+      where: {
+        group_id_user_id: { group_id: groupId, user_id: userToAdd.id },
+      },
+    });
+
+    if (existingMember) throw new ValidationError("Người dùng này đã ở trong nhóm");
+
+    const newMember = await prisma.groupMember.create({
+      data: {
+        group_id: groupId,
+        user_id: userToAdd.id,
+        balance: 0,
+      },
+    });
+
+    const { notificationService } = require("./notification.service");
+    if (group.created_by !== addedByUserId && group.created_by !== userToAdd.id) {
+      const adder = await prisma.user.findUnique({ where: { id: addedByUserId } });
+      await notificationService.createNotification({
+        userId: group.created_by,
+        type: "GROUP_JOIN",
+        title: "Thành viên mới",
+        message: `${adder?.username} vừa thêm ${userToAdd.username} vào nhóm "${group.name}".`,
+        relatedEntityId: group.id
+      });
+    }
+
+    const groupMembers = await prisma.groupMember.findMany({
+      where: { group_id: groupId },
+      select: { user_id: true }
+    });
+    const memberIds = groupMembers.map(m => m.user_id);
+    sendToUsers(memberIds, "GROUP_UPDATED", { type: "JOIN", groupId, userId: userToAdd.id });
+
+    return newMember;
+  }
+
   async getGroupsByUser(userId: string) {
     return prisma.group.findMany({
       where: {

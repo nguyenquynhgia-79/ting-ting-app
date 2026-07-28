@@ -16,6 +16,7 @@ import paymentRoutes from "./routes/payment.routes";
 import storageRoutes from "./routes/storage.routes";
 import userRoutes from "./routes/user.routes";
 import notificationRoutes from "./routes/notification.routes";
+import adminRoutes from "./routes/admin.routes";
 
 const app = express();
 
@@ -83,6 +84,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/storage", storageRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Catch-all for unknown routes
 app.use((req, res) => {
