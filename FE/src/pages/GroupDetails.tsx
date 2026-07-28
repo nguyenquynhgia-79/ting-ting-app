@@ -141,7 +141,7 @@ const GroupDetails = () => {
     // Check balance first
     const unsettled = group?.members?.filter((m: any) => Math.abs(Number(m.balance)) > 0.01) || [];
     if (unsettled.length > 0) {
-      dialog.alert({ message: `Không thể xóa nhóm!\n\nVẫn còn ${unsettled.length} thành viên chưa tất toán nợ:\n${unsettled.map((m: any) => `• ${m.user?.username}: ${Number(m.balance).toLocaleString()}đ`).join('\n')}\n\nVui lòng giải quyết tất cả khoản nợ trước khi xóa nhóm.`, type: 'error' });
+      dialog.alert({ message: `Không thể xóa nhóm!\n\nVẫn còn ${unsettled.length} thành viên chưa tất toán nợ:\n${unsettled.map((m: any) => `• ${m.user?.full_name || m.user?.username}: ${Number(m.balance).toLocaleString()}đ`).join('\n')}\n\nVui lòng giải quyết tất cả khoản nợ trước khi xóa nhóm.`, type: 'error' });
       return;
     }
     const isConfirmed = await dialog.confirm("Tất cả khoản nợ đã tất toán.\nBạn có chắc muốn XÓA NHÓM này không?\nNhóm sẽ bị lưu trữ và biến mất khỏi danh sách.");
@@ -845,10 +845,10 @@ const GroupDetails = () => {
                         }}
                       >
                         <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                          <img src={`https://ui-avatars.com/api/?name=${user.username}&background=E5E7EB&color=374151&bold=true&size=64`} alt={user.username} style={{ width: '100%', height: '100%' }} />
+                          <img src={`https://ui-avatars.com/api/?name=${user.full_name || user.username}&background=E5E7EB&color=374151&bold=true&size=64`} alt={user.full_name || user.username} style={{ width: '100%', height: '100%' }} />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ margin: 0, fontWeight: 800, fontSize: 16, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.username}</p>
+                          <p style={{ margin: 0, fontWeight: 800, fontSize: 16, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.full_name || user.username}</p>
                           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: 4, flexWrap: 'wrap' }}>
                             {user.email && <p style={{ margin: 0, fontSize: 12, color: 'var(--text-secondary)' }}>{user.email}</p>}
                             {user.phone_number && (
@@ -935,7 +935,7 @@ const GroupDetails = () => {
                     <h4 style={{ fontWeight: 700, fontSize: 16, margin: '0 0 4px' }}>{exp.description || 'Chi phí'}</h4>
                     <p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ fontWeight: 600, color: 'var(--primary)' }}>
-                        {exp.payer.username === authUser?.username ? 'Bạn' : exp.payer.username}
+                        {exp.payer.id === authUser?.id ? 'Bạn' : (exp.payer.full_name || exp.payer.username)}
                       </span> trả {Number(exp.amount).toLocaleString()}đ
                       {exp.proof_url && <Camera size={14} style={{ color: 'var(--primary)', opacity: 0.7 }} />}
                     </p>
@@ -1115,7 +1115,7 @@ const GroupDetails = () => {
                           {split.user.avatar_url ? (
                             <img 
                               src={split.user.avatar_url} 
-                              alt={split.user.username} 
+                              alt={split.user.full_name || split.user.username} 
                               style={{ width: 32, height: 32, borderRadius: '10px', objectFit: 'cover', filter: isStillMember ? 'none' : 'grayscale(100%)' }} 
                             />
                           ) : (
@@ -1126,7 +1126,7 @@ const GroupDetails = () => {
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                               fontSize: 14, fontWeight: 700
                             }}>
-                              {split.user.username[0].toUpperCase()}
+                              {(split.user.full_name || split.user.username)[0].toUpperCase()}
                             </div>
                           )}
                           <span style={{ 
@@ -1136,7 +1136,7 @@ const GroupDetails = () => {
                               ? (split.user_id === selectedExpense.payer_id ? 'var(--primary)' : 'var(--text-primary)')
                               : '#9CA3AF'
                           }}>
-                            {split.user.username === authUser?.username ? 'Bạn' : split.user.username}
+                            {split.user.id === authUser?.id ? 'Bạn' : (split.user.full_name || split.user.username)}
                             {split.user_id === selectedExpense.payer_id && <span style={{ fontSize: 11, marginLeft: 6, opacity: 0.7 }}>(Người trả)</span>}
                             {!isStillMember && <span style={{ fontSize: 11, marginLeft: 6, fontStyle: 'italic' }}>(Đã rời nhóm)</span>}
                           </span>
@@ -1153,7 +1153,7 @@ const GroupDetails = () => {
             
             <div style={{ padding: '16px 20px', backgroundColor: 'var(--background)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)' }}>
-                Được trả bởi <strong>{selectedExpense.payer.username}</strong> vào {new Date(selectedExpense.created_at).toLocaleString('vi-VN')}
+                Được trả bởi <strong>{selectedExpense.payer.id === authUser?.id ? 'Bạn' : (selectedExpense.payer.full_name || selectedExpense.payer.username)}</strong> vào {new Date(selectedExpense.created_at).toLocaleString('vi-VN')}
               </p>
               <div style={{ display: 'flex', gap: 8 }}>
                 {selectedExpense.payer_id === authUser?.id ? (

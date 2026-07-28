@@ -52,6 +52,7 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
     res.json({
       id: user.id,
       username: user.username,
+      full_name: (user as any).full_name || null,
       email: user.email,
       phone_number: (user as any).phone_number || null,
       avatar_url: user.avatar_url,

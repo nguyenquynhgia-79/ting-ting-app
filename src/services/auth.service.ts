@@ -44,6 +44,7 @@ export class AuthService {
       user: {
         id: user.id,
         username: user.username,
+        full_name: (user as any).full_name || null,
         email: user.email,
         avatar_url: user.avatar_url,
         status: user.status,

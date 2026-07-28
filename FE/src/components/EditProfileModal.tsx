@@ -13,6 +13,7 @@ interface EditProfileModalProps {
 
 const EditProfileModal = ({ isOpen, onClose, profile, onUpdateSuccess }: EditProfileModalProps) => {
   const [username, setUsername] = useState('');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,6 +22,7 @@ const EditProfileModal = ({ isOpen, onClose, profile, onUpdateSuccess }: EditPro
   useEffect(() => {
     if (isOpen && profile) {
       setUsername(profile.username || '');
+      setFullName(profile.full_name || profile.username || '');
       setEmail(profile.email || '');
       setPhone(profile.phone_number || '');
     }
@@ -34,13 +36,13 @@ const EditProfileModal = ({ isOpen, onClose, profile, onUpdateSuccess }: EditPro
 
     try {
       const { data } = await api.put('/users/profile', {
-        username,
+        full_name: fullName,
         email,
         phone_number: phone || null
       });
       
       toast.success('Cập nhật thông tin thành công');
-      updateUser({ username: data.username, email: data.email, phone_number: data.phone_number });
+      updateUser({ full_name: data.full_name, email: data.email, phone_number: data.phone_number });
       onUpdateSuccess(data);
       onClose();
     } catch (error: any) {
@@ -82,10 +84,10 @@ const EditProfileModal = ({ isOpen, onClose, profile, onUpdateSuccess }: EditPro
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Username */}
+          {/* Full Name */}
           <div>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 8, marginLeft: 12 }}>
-              TÊN ĐĂNG NHẬP / HIỂN THỊ
+              TÊN HIỂN THỊ
             </label>
             <div style={{ 
               display: 'flex', alignItems: 'center', gap: 12,
@@ -94,9 +96,27 @@ const EditProfileModal = ({ isOpen, onClose, profile, onUpdateSuccess }: EditPro
             }}>
               <User size={20} style={{ color: 'var(--primary)' }} />
               <input 
-                type="text" value={username} onChange={e => setUsername(e.target.value)}
+                type="text" value={fullName} onChange={e => setFullName(e.target.value)}
                 placeholder="Tên của bạn" required
                 style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: 16, color: 'var(--text-primary)', fontWeight: 600 }}
+              />
+            </div>
+          </div>
+
+          {/* Username */}
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 8, marginLeft: 12 }}>
+              TÊN ĐĂNG NHẬP (Không thể đổi)
+            </label>
+            <div style={{ 
+              display: 'flex', alignItems: 'center', gap: 12,
+              backgroundColor: 'var(--surface)', borderRadius: 20,
+              padding: '16px', border: '1px solid var(--border)'
+            }}>
+              <User size={20} style={{ color: 'var(--text-muted)' }} />
+              <input 
+                type="text" value={username} disabled
+                style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: 16, color: 'var(--text-muted)', fontWeight: 600 }}
               />
             </div>
           </div>

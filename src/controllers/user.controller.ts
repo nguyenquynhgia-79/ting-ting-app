@@ -13,6 +13,7 @@ export const searchUsers = asyncHandler(async (req: Request, res: Response) => {
     where: {
       OR: [
         { username: { contains: q, mode: 'insensitive' } },
+        { full_name: { contains: q, mode: 'insensitive' } },
         { email: { contains: q, mode: 'insensitive' } },
         { phone_number: { contains: q } }
       ],
@@ -21,6 +22,7 @@ export const searchUsers = asyncHandler(async (req: Request, res: Response) => {
     select: {
       id: true,
       username: true,
+      full_name: true,
       email: true,
       phone_number: true,
       avatar_url: true
@@ -44,17 +46,16 @@ export const updateAvatar = asyncHandler(async (req: Request, res: Response) => 
 
 export const updateProfile = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user!.userId;
-  const { username, email, phone_number } = req.body;
+  const { full_name, email, phone_number } = req.body;
   
-  if (!username || !email) {
-    return res.status(400).json({ message: "Username và Email là bắt buộc" });
+  if (!email) {
+    return res.status(400).json({ message: "Email là bắt buộc" });
   }
 
   // Check if username, email or phone_number already exists for ANOTHER user
   const existingUser = await prisma.user.findFirst({
     where: {
       OR: [
-        { username },
         { email },
         ...(phone_number ? [{ phone_number }] : [])
       ],
@@ -63,9 +64,6 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response) =>
   });
 
   if (existingUser) {
-    if (existingUser.username === username) {
-      return res.status(400).json({ message: "Tên đăng nhập đã tồn tại" });
-    }
     if (existingUser.email === email) {
       return res.status(400).json({ message: "Email đã tồn tại" });
     }
@@ -77,7 +75,7 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response) =>
   const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: { 
-      username, 
+      full_name: full_name || null,
       email, 
       phone_number: phone_number || null 
     }
@@ -86,6 +84,7 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response) =>
   res.json({
     id: updatedUser.id,
     username: updatedUser.username,
+    full_name: updatedUser.full_name,
     email: updatedUser.email,
     phone_number: updatedUser.phone_number
   });

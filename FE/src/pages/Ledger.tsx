@@ -106,7 +106,7 @@ const Ledger = () => {
           {authUser?.avatar_url ? (
             <img src={authUser.avatar_url} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
-            <img src={`https://ui-avatars.com/api/?name=${authUser?.username || 'User'}&background=10B981&color=fff`} alt="Avatar" style={{ width: '100%', height: '100%' }} />
+            <img src={`https://ui-avatars.com/api/?name=${authUser?.full_name || authUser?.username || 'User'}&background=10B981&color=fff`} alt="Avatar" style={{ width: '100%', height: '100%' }} />
           )}
         </div>
 
@@ -226,7 +226,7 @@ const Ledger = () => {
                               }}>
                                 <User size={20} color="var(--text-muted)" />
                               </div>
-                              <span style={{ fontWeight: 700, fontSize: 16 }}>{otherUser.username}</span>
+                              <span style={{ fontWeight: 700, fontSize: 16 }}>{otherUser.full_name || otherUser.username}</span>
                               <ArrowRight size={16} color="var(--text-muted)" />
                               <span style={{ 
                                 fontSize: 12, fontWeight: 700, color: 'var(--primary)', 
@@ -253,7 +253,7 @@ const Ledger = () => {
                               }}>
                                 <User size={20} color="var(--text-muted)" />
                               </div>
-                              <span style={{ fontWeight: 700, fontSize: 16 }}>{otherUser.username}</span>
+                              <span style={{ fontWeight: 700, fontSize: 16 }}>{otherUser.full_name || otherUser.username}</span>
                             </>
                           )}
                         </div>

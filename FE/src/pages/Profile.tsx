@@ -143,7 +143,7 @@ const Profile = () => {
             boxShadow: '0 12px 30px rgba(16, 185, 129, 0.15)'
           }}>
             <img 
-              src={avatarPreview || displayUser?.avatar_url || `https://ui-avatars.com/api/?name=${displayUser?.username || 'User'}&background=10B981&color=fff&size=200&bold=true`} 
+              src={avatarPreview || displayUser?.avatar_url || `https://ui-avatars.com/api/?name=${displayUser?.full_name || displayUser?.username || 'User'}&background=10B981&color=fff&size=200&bold=true`} 
               alt="Avatar" 
               style={{ width: '100%', height: '100%', borderRadius: 34, objectFit: 'cover' }} 
             />
@@ -190,7 +190,7 @@ const Profile = () => {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 4 }}>
           <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-primary)' }}>
-            {displayUser?.username || 'Đang tải...'}
+            {displayUser?.full_name || displayUser?.username || 'Đang tải...'}
           </h1>
           <BadgeCheck size={22} color="var(--primary)" />
         </div>

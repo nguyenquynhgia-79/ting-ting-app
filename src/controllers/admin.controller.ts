@@ -28,6 +28,7 @@ export const getUsers = asyncHandler(async (req: Request, res: Response) => {
     select: {
       id: true,
       username: true,
+      full_name: true,
       email: true,
       status: true,
       role: true,

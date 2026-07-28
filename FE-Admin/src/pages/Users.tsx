@@ -8,6 +8,7 @@ import { vi } from 'date-fns/locale';
 interface User {
   id: string;
   username: string;
+  full_name?: string;
   email: string;
   status: string;
   role: string;
@@ -56,6 +57,7 @@ const Users = () => {
 
   const filteredUsers = users.filter(u => 
     u.username.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (u.full_name && u.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
     u.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -109,12 +111,13 @@ const Users = () => {
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
                           <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-lg">
-                            {user.username.charAt(0).toUpperCase()}
+                            {(user.full_name || user.username).charAt(0).toUpperCase()}
                           </div>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-bold text-slate-900">{user.username}</div>
-                          <div className="text-sm font-medium text-slate-500">{user.email}</div>
+                          <div className="text-sm font-bold text-slate-900">{user.full_name || user.username}</div>
+                          <div className="text-xs font-medium text-slate-500">@{user.username}</div>
+                          <div className="text-xs font-medium text-slate-500">{user.email}</div>
                         </div>
                       </div>
                     </td>
