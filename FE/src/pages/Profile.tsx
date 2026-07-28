@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Mail, LogOut, ChevronRight, Camera, Lock, ArrowUpCircle, ArrowDownCircle, Settings, ShieldCheck, BadgeCheck, Loader2, Trash2, Banknote, Phone } from 'lucide-react';
+import { Mail, LogOut, ChevronRight, Camera, Lock, ArrowUpCircle, ArrowDownCircle, Settings, ShieldCheck, BadgeCheck, Loader2, Trash2, Banknote, Phone, X, User, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import BankInfoModal from '../components/BankInfoModal';
@@ -17,6 +17,7 @@ const Profile = () => {
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [showBankModal, setShowBankModal] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const dialog = useDialog();
 
   useEffect(() => {
@@ -116,7 +117,9 @@ const Profile = () => {
           Cá nhân
         </h2>
         
-        <button style={{ 
+        <button 
+          onClick={() => setIsSettingsOpen(true)}
+          style={{ 
           width: 40, height: 40, borderRadius: '12px', 
           backgroundColor: 'var(--surface)', border: '1px solid var(--border)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -328,20 +331,6 @@ const Profile = () => {
           </button>
         </div>
 
-        <button 
-          onClick={logout}
-          style={{ 
-            marginTop: 32, width: '100%', height: 64, borderRadius: 20,
-            backgroundColor: 'var(--surface)', border: '1px solid #FECACA',
-            color: 'var(--negative)', fontSize: 16, fontWeight: 700,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-            cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(239, 68, 68, 0.05)'
-          }}
-        >
-          <LogOut size={22} />
-          Đăng xuất
-        </button>
       </div>
 
       <BottomNav />
@@ -368,6 +357,99 @@ const Profile = () => {
           }}
         />
       )}
+
+      {/* Settings Drawer Overlay */}
+      <div 
+        onClick={() => setIsSettingsOpen(false)}
+        style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 199,
+          opacity: isSettingsOpen ? 1 : 0,
+          pointerEvents: isSettingsOpen ? 'auto' : 'none',
+          transition: 'opacity 0.3s ease'
+        }}
+      />
+
+      {/* Settings Drawer Panel */}
+      <div style={{
+        position: 'fixed', top: 0, right: 0, bottom: 0, width: '85%', maxWidth: 360,
+        backgroundColor: 'var(--background)', zIndex: 200,
+        boxShadow: '-8px 0 30px rgba(0,0,0,0.1)',
+        transform: isSettingsOpen ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        display: 'flex', flexDirection: 'column'
+      }}>
+        <div style={{ 
+          padding: '24px 20px', borderBottom: '1px solid var(--border)', 
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          backgroundColor: 'var(--surface)'
+        }}>
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: 'var(--text-primary)' }}>Cài đặt</h2>
+          <button 
+            onClick={() => setIsSettingsOpen(false)} 
+            style={{ 
+              background: '#F3F4F6', border: 'none', cursor: 'pointer', 
+              width: 36, height: 36, borderRadius: 18, 
+              display: 'flex', alignItems: 'center', justifyContent: 'center' 
+            }}
+          >
+            <X size={20} color="#6B7280" />
+          </button>
+        </div>
+
+        <div style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 16, flex: 1, overflowY: 'auto' }}>
+          <button 
+            onClick={() => { setIsSettingsOpen(false); setShowEditProfileModal(true); }}
+            style={{ 
+              display: 'flex', alignItems: 'center', gap: 16, padding: '16px', 
+              backgroundColor: 'var(--surface)', border: '1px solid var(--border)', 
+              borderRadius: 20, cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
+            }}
+          >
+            <div style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <User size={22} />
+            </div>
+            <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>Sửa thông tin cá nhân</span>
+            <ChevronRight size={20} color="var(--text-muted)" style={{ marginLeft: 'auto' }} />
+          </button>
+
+          <button 
+            onClick={() => {
+              setIsSettingsOpen(false);
+              dialog.alert({ message: 'Tính năng gửi phản hồi đang được phát triển. Cảm ơn bạn!', type: 'info' });
+            }}
+            style={{ 
+              display: 'flex', alignItems: 'center', gap: 16, padding: '16px', 
+              backgroundColor: 'var(--surface)', border: '1px solid var(--border)', 
+              borderRadius: 20, cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
+            }}
+          >
+            <div style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#E0E7FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <MessageSquare size={22} />
+            </div>
+            <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>Gửi phản hồi</span>
+            <ChevronRight size={20} color="var(--text-muted)" style={{ marginLeft: 'auto' }} />
+          </button>
+          
+          <div style={{ flex: 1 }} />
+
+          <button 
+            onClick={() => { setIsSettingsOpen(false); logout(); }}
+            style={{ 
+              display: 'flex', alignItems: 'center', gap: 12, padding: '18px', 
+              backgroundColor: '#FEF2F2', border: '1px solid #FECACA', 
+              borderRadius: 20, cursor: 'pointer', marginTop: 32,
+              justifyContent: 'center',
+              boxShadow: '0 4px 15px rgba(239,68,68,0.1)'
+            }}
+          >
+            <LogOut size={22} color="var(--negative)" />
+            <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--negative)' }}>Đăng xuất</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
