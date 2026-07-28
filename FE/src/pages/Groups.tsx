@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Users as UsersIcon, Loader2, QrCode } from 'lucide-react';
+import { Plus, Search, Users as UsersIcon, Loader2, QrCode, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import BottomNav from '../components/BottomNav';
@@ -10,7 +10,6 @@ const Groups = () => {
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showSearch, setShowSearch] = useState(false);
   const navigate = useNavigate();
   const { socket } = useSocket();
   const { user: authUser } = useAuth();
@@ -50,14 +49,11 @@ const Groups = () => {
   return (
     <div style={{ 
       flex: 1, 
-      display: 'flex', 
-      flexDirection: 'column', 
-      height: '100vh', 
       backgroundColor: '#F9FAFB', 
       color: 'var(--text-primary)',
-      paddingBottom: 80,
-      position: 'relative',
-      overflow: 'hidden'
+      paddingBottom: 100,
+      minHeight: '100vh',
+      position: 'relative'
     }}>
       {/* Header */}
       <div style={{ 
@@ -73,87 +69,62 @@ const Groups = () => {
         zIndex: 100,
         borderBottom: '1px solid rgba(16, 185, 129, 0.08)'
       }}>
-        {showSearch ? (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 12 }} className="animate-in">
-            <div style={{ flex: 1, position: 'relative' }}>
-              <Search size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <input 
-                type="text" 
-                placeholder="Tìm tên nhóm..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ 
-                  width: '100%', padding: '10px 16px 10px 44px', borderRadius: 20, 
-                  border: '1px solid var(--border)', backgroundColor: 'var(--surface)',
-                  fontSize: 14, outline: 'none', color: 'var(--text-primary)', fontWeight: 500
-                }}
-                autoFocus
-              />
-            </div>
-            <button 
-              onClick={() => { setShowSearch(false); setSearchQuery(''); }} 
-              style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', border: 'none', background: 'none', cursor: 'pointer' }}
-            >
-              Hủy
-            </button>
-          </div>
-        ) : (
-          <>
-            <div 
-              onClick={() => navigate('/profile')}
-              style={{ 
-                width: 38, height: 38, borderRadius: '12px', overflow: 'hidden', 
-                backgroundColor: 'var(--background)', border: '1px solid var(--border)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer'
-              }}
-            >
-              <img 
-                src={authUser?.avatar_url || `https://ui-avatars.com/api/?name=${authUser?.username || 'User'}&background=10B981&color=fff`} 
-                alt="Avatar" 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-              />
-            </div>
-            
-            <h2 style={{ 
-              position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-              fontSize: 18, fontWeight: 800, margin: 0, color: 'var(--text-primary)',
-              letterSpacing: '-0.5px'
-            }}>
-              Nhóm
-            </h2>
-            
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button 
-                onClick={() => setShowSearch(true)}
-                style={{ 
-                  width: 40, height: 40, borderRadius: '12px', 
-                  backgroundColor: 'var(--surface)', border: '1px solid var(--border)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'var(--primary)',
-                  cursor: 'pointer'
-                }}
-              >
-                <Search size={20} />
-              </button>
-              <button 
-                onClick={() => navigate('/groups/join')}
-                style={{ 
-                  width: 40, height: 40, borderRadius: '12px', 
-                  backgroundColor: '#ECFDF5', border: '1px solid #D1FAE5',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#10B981',
-                  cursor: 'pointer'
-                }}
-              >
-                <QrCode size={20} />
-              </button>
-            </div>
-          </>
-        )}
+        <div 
+          onClick={() => navigate('/profile')}
+          style={{ 
+            width: 38, height: 38, borderRadius: '12px', overflow: 'hidden', 
+            backgroundColor: 'var(--background)', border: '1px solid var(--border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer'
+          }}
+        >
+          <img 
+            src={authUser?.avatar_url || `https://ui-avatars.com/api/?name=${authUser?.username || 'User'}&background=10B981&color=fff`} 
+            alt="Avatar" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+          />
+        </div>
+        
+        <h2 style={{ 
+          position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+          fontSize: 18, fontWeight: 800, margin: 0, color: 'var(--primary)',
+          letterSpacing: '-0.5px'
+        }}>
+          Nhóm
+        </h2>
+        
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button 
+            style={{ 
+              width: 40, height: 40, borderRadius: '12px', 
+              backgroundColor: '#ECFDF5', border: '1px solid #D1FAE5',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#10B981',
+              cursor: 'pointer'
+            }}
+          >
+            <Bell size={20} />
+          </button>
+        </div>
       </div>
 
-      <div style={{ padding: '20px', flex: 1, overflowY: 'auto' }}>
+      <div style={{ padding: '20px' }}>
+        <div style={{ position: 'relative', marginBottom: 20 }}>
+          <Search size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <input 
+            type="text" 
+            placeholder="Tìm tên nhóm..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ 
+              width: '100%', padding: '12px 16px 12px 44px', borderRadius: 16, 
+              border: '1px solid var(--border)', backgroundColor: '#FFFFFF',
+              fontSize: 15, outline: 'none', color: 'var(--text-primary)', fontWeight: 500,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+            }}
+          />
+        </div>
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
@@ -244,7 +215,7 @@ const Groups = () => {
       </div>
 
       {/* FABs */}
-      <div style={{ position: 'absolute', bottom: 100, right: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ position: 'fixed', bottom: 100, right: 20, display: 'flex', flexDirection: 'column', gap: 12, zIndex: 90 }}>
         {/* Join group */}
         <button
           onClick={() => navigate('/groups/join')}
