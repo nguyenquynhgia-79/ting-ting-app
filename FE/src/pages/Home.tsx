@@ -59,10 +59,12 @@ const Home = () => {
   return (
     <div style={{ 
       flex: 1, 
-      paddingBottom: 100, 
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100vh', 
       backgroundColor: 'var(--background)', 
-      minHeight: '100vh',
-      color: 'var(--text-primary)'
+      color: 'var(--text-primary)',
+      overflow: 'hidden'
     }}>
       {/* Header */}
       <div style={{ 
@@ -202,18 +204,19 @@ const Home = () => {
         </button>
       </div>
 
-      {/* Group List */}
-      <div style={{ padding: '0 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 800 }}>Nhóm của bạn</h2>
-          <button 
-            onClick={() => navigate('/groups')}
-            style={{ color: 'var(--primary)', fontSize: 14, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}
-          >
-            Tất cả
-          </button>
-        </div>
+      {/* Group List Header */}
+      <div style={{ padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 800 }}>Nhóm của bạn</h2>
+        <button 
+          onClick={() => navigate('/groups')}
+          style={{ color: 'var(--primary)', fontSize: 14, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}
+        >
+          Tất cả
+        </button>
+      </div>
 
+      {/* Group List Scrollable Area */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 100px 20px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>Đang tải...</div>
