@@ -955,7 +955,6 @@ const GroupDetails = () => {
                       
                       const isPositive = myImpact > 0;
                       const isNegative = myImpact < 0;
-                      const isZero = myImpact === 0;
 
                       return (
                         <p style={{ 
