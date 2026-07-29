@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Check, Loader2, ToggleLeft, ToggleRight, ChevronLeft, Trash2 } from 'lucide-react';
+import { Camera, Check, Loader2, ToggleLeft, ToggleRight, ChevronLeft, Trash2, Image } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
@@ -261,19 +261,47 @@ const EditExpense = () => {
 
         {/* ── PROOF UPLOAD ── */}
         <div style={{ backgroundColor: 'var(--surface)', borderRadius: 16, border: '1px solid var(--border)', overflow: 'hidden' }}>
-          <input type="file" id="proof-upload" hidden accept="image/*" onChange={handleFileChange} />
-          <label htmlFor="proof-upload" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', cursor: 'pointer' }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Camera size={20} color="var(--primary)" />
+          <div style={{ padding: '12px 16px 8px', borderBottom: '1px solid var(--border)' }}>
+             <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', margin: 0 }}>
+               HÌNH ẢNH HÓA ĐƠN (Không bắt buộc)
+             </p>
+          </div>
+          
+          {proofPreview && (
+            <div style={{ padding: '16px', display: 'flex', justifyContent: 'center', borderBottom: '1px solid var(--border)' }}>
+              <img src={proofPreview} alt="Preview" style={{ width: 120, height: 160, borderRadius: 12, objectFit: 'cover' }} />
             </div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontWeight: 600, fontSize: 14, margin: 0, color: 'var(--text-primary)' }}>{proofPreview ? 'Thay đổi ảnh' : 'Thêm ảnh hóa đơn'}</p>
-              <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0 }}>Không bắt buộc</p>
-            </div>
-            {proofPreview && (
-              <img src={proofPreview} alt="Preview" style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
-            )}
-          </label>
+          )}
+
+          <div style={{ display: 'flex' }}>
+            <input type="file" id="proof-upload-gallery" hidden accept="image/*" onChange={handleFileChange} />
+            <label
+              htmlFor="proof-upload-gallery"
+              style={{
+                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                padding: '16px 8px', cursor: 'pointer', borderRight: '1px solid var(--border)'
+              }}
+            >
+              <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Image size={20} color="var(--text-secondary)" />
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>Thư viện</span>
+            </label>
+
+            <input type="file" id="proof-upload-camera" hidden accept="image/*" capture="environment" onChange={handleFileChange} />
+            <label
+              htmlFor="proof-upload-camera"
+              style={{
+                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                padding: '16px 8px', cursor: 'pointer'
+              }}
+            >
+              <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Camera size={20} color="var(--primary)" />
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>Chụp ảnh</span>
+            </label>
+          </div>
         </div>
 
         {/* ── SPLIT MODE TOGGLE ── */}
