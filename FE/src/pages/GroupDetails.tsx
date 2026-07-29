@@ -941,12 +941,31 @@ const GroupDetails = () => {
                     </p>
                   </div>
                   <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                    <p style={{ 
-                      fontWeight: 700, fontSize: 15, margin: '0 0 4px',
-                      color: exp.payer_id === authUser?.id ? 'var(--positive)' : 'var(--negative)'
-                    }}>
-                      {exp.payer_id === authUser?.id ? '+' : '-'}{Number(exp.amount / group.members.length).toLocaleString()}đ
-                    </p>
+                    {(() => {
+                      let myImpact = 0;
+                      if (authUser) {
+                        if (exp.payer_id === authUser.id) {
+                          myImpact += Number(exp.amount);
+                        }
+                        const mySplit = exp.splits?.find((s: any) => s.user_id === authUser.id);
+                        if (mySplit) {
+                          myImpact -= Number(mySplit.amount_owed);
+                        }
+                      }
+                      
+                      const isPositive = myImpact > 0;
+                      const isNegative = myImpact < 0;
+                      const isZero = myImpact === 0;
+
+                      return (
+                        <p style={{ 
+                          fontWeight: 700, fontSize: 15, margin: '0 0 4px',
+                          color: isPositive ? 'var(--positive)' : (isNegative ? 'var(--negative)' : 'var(--text-secondary)')
+                        }}>
+                          {isPositive ? '+' : (isNegative ? '-' : '')}{Math.abs(myImpact).toLocaleString()}đ
+                        </p>
+                      );
+                    })()}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>
                         {new Date(exp.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}
