@@ -39,16 +39,49 @@ Hệ thống bao gồm 2 phần giao diện chính:
 
 ## 3. Kiến Trúc Cơ Sở Dữ Liệu (Database Schema)
 
-Dữ liệu được quản lý bằng Prisma ORM. Dưới đây là các thực thể (Models) cốt lõi:
+Dữ liệu được quản lý bằng Prisma ORM (PostgreSQL). Dưới đây là chi tiết các thực thể (Models) và các trường (Fields) quan trọng:
 
-- **User (`users`):** Lưu thông tin tài khoản, mật khẩu (hash), vai trò (ADMIN/USER), trạng thái.
-- **Group (`groups`):** Lưu thông tin nhóm chi tiêu, mã mời tham gia, người tạo.
-- **GroupMember (`group_members`):** Bảng trung gian n-n nối User và Group. Đặc biệt lưu trường `balance` (số dư hiện tại của user trong nhóm đó).
-- **Expense (`expenses`):** Lưu thông tin 1 khoản chi chung (tổng tiền, người thanh toán, ảnh hóa đơn, kiểu chia `EQUAL/CUSTOM`).
-- **ExpenseSplit (`expense_splits`):** Chi tiết phân bổ của khoản chi. (Ví dụ hóa đơn 100k, chia cho A 60k, B 40k thì bảng này lưu 2 record).
-- **Payment (`payments`):** Giao dịch hoàn tiền giữa các user (A trả nợ cho B). Trạng thái (PENDING/COMPLETED/REJECTED).
-- **Notification (`notifications`):** Lưu trữ các thông báo trong hệ thống.
-- **AuditLog / TokenBlacklist:** Phục vụ bảo mật và lưu vết hệ thống.
+**1. User (`users`)**
+- `id` (String, PK): ID định danh người dùng.
+- `username`, `email`, `phone_number`: Các thông tin liên lạc (Unique).
+- `password_hash`: Mật khẩu mã hóa.
+- `role` (Enum): `ADMIN` hoặc `USER`.
+- `status` (Enum): Trạng thái tài khoản (`require_password_change`, `active`, `inactive`, `blocked`).
+- `bank_name`, `account_number`, `account_name`: Thông tin nhận chuyển khoản.
+
+**2. Group (`groups`)**
+- `id` (String, PK): ID nhóm.
+- `name` (String): Tên nhóm.
+- `invite_code` (String, Unique): Mã mời thành viên.
+- `created_by` (String, FK): User ID của người tạo nhóm.
+
+**3. GroupMember (`group_members`)**
+- Bảng trung gian n-n nối User và Group. Primary Key là `[group_id, user_id]`.
+- `balance` (Decimal): **Trường cốt lõi** lưu trữ số dư hiện tại của user trong nhóm đó (Âm = đang nợ, Dương = người khác nợ mình).
+
+**4. Expense (`expenses`)**
+- `id` (String, PK): ID khoản chi.
+- `group_id` (String, FK): Thuộc nhóm nào.
+- `payer_id` (String, FK): Ai là người bỏ tiền ra trả cho khoản này.
+- `amount` (Decimal): Tổng số tiền của hóa đơn.
+- `split_type` (Enum): Cách chia tiền (`EQUAL` - chia đều, `CUSTOM` - tự nhập tay).
+- `receipt_image_url`, `proof_url`: Ảnh hóa đơn.
+
+**5. ExpenseSplit (`expense_splits`)**
+- `id` (String, PK), `expense_id` (FK), `user_id` (FK).
+- `amount_owed` (Decimal): Số tiền mà user này phải chịu trong khoản chi đó.
+
+**6. Payment (`payments`)**
+- `id` (String, PK), `group_id` (FK).
+- `payer_id` (FK): Người trả nợ.
+- `payee_id` (FK): Người nhận tiền.
+- `amount` (Decimal): Số tiền giao dịch.
+- `status` (Enum): `PENDING` (chờ duyệt), `COMPLETED` (đã xác nhận), `REJECTED` (từ chối).
+
+**7. Notification (`notifications`)**
+- `id` (PK), `user_id` (FK): Người nhận thông báo.
+- `type`, `title`, `message`: Nội dung.
+- `is_read` (Boolean): Đã đọc chưa.
 
 ### 2.2 Frontend (Web App / Mobile Web)
 - **Core:** React.js (phiên bản 18+)
