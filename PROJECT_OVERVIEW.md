@@ -14,7 +14,7 @@ Hệ thống bao gồm 2 phần giao diện chính:
 
 ## 2. Tech Stack (Công nghệ sử dụng)
 
-### 2.1 Backend (API Server)
+### 2.1 Backend (API Server) & Các luồng xử lý chính
 - **Runtime:** Node.js
 - **Framework:** Express.js
 - **Ngôn ngữ:** TypeScript
@@ -22,6 +22,33 @@ Hệ thống bao gồm 2 phần giao diện chính:
 - **Cơ sở dữ liệu:** PostgreSQL
 - **Xác thực:** JWT (JSON Web Token)
 - **Upload:** Supabase Storage (hoặc Cloudinary/AWS S3 tùy cấu hình)
+
+**Các luồng xử lý chính (Main Flows):**
+1. **Luồng Xác thực (Auth Flow):** 
+   - Admin tạo tài khoản cho User. User đăng nhập lần đầu ở trạng thái `require_password_change` bắt buộc phải đổi mật khẩu. Đăng nhập thành công trả về JWT Token.
+2. **Luồng Quản lý Nhóm (Group Flow):** 
+   - User tạo nhóm sinh ra `invite_code`. User khác có thể join nhóm bằng mã này.
+3. **Luồng Chi Tiêu (Expense Flow):** 
+   - User thêm Expense (Chi tiêu) chỉ định người trả (Payer) và những người tham gia (Splits).
+   - Hệ thống tự động tính toán lại số dư (Balance) của từng thành viên trong `GroupMember`.
+4. **Luồng Thanh Toán / Đòi nợ (Payment/Reminder Flow):** 
+   - User A trả tiền nợ cho User B tạo ra bản ghi Payment.
+   - Gửi Notification (nhắc nợ, báo có tiền) bằng hệ thống thông báo nội bộ.
+
+---
+
+## 3. Kiến Trúc Cơ Sở Dữ Liệu (Database Schema)
+
+Dữ liệu được quản lý bằng Prisma ORM. Dưới đây là các thực thể (Models) cốt lõi:
+
+- **User (`users`):** Lưu thông tin tài khoản, mật khẩu (hash), vai trò (ADMIN/USER), trạng thái.
+- **Group (`groups`):** Lưu thông tin nhóm chi tiêu, mã mời tham gia, người tạo.
+- **GroupMember (`group_members`):** Bảng trung gian n-n nối User và Group. Đặc biệt lưu trường `balance` (số dư hiện tại của user trong nhóm đó).
+- **Expense (`expenses`):** Lưu thông tin 1 khoản chi chung (tổng tiền, người thanh toán, ảnh hóa đơn, kiểu chia `EQUAL/CUSTOM`).
+- **ExpenseSplit (`expense_splits`):** Chi tiết phân bổ của khoản chi. (Ví dụ hóa đơn 100k, chia cho A 60k, B 40k thì bảng này lưu 2 record).
+- **Payment (`payments`):** Giao dịch hoàn tiền giữa các user (A trả nợ cho B). Trạng thái (PENDING/COMPLETED/REJECTED).
+- **Notification (`notifications`):** Lưu trữ các thông báo trong hệ thống.
+- **AuditLog / TokenBlacklist:** Phục vụ bảo mật và lưu vết hệ thống.
 
 ### 2.2 Frontend (Web App / Mobile Web)
 - **Core:** React.js (phiên bản 18+)
@@ -34,7 +61,7 @@ Hệ thống bao gồm 2 phần giao diện chính:
 
 ---
 
-## 3. Cấu trúc thư mục (Project Structure)
+## 4. Cấu trúc thư mục (Project Structure)
 
 Dự án áp dụng mô hình Monorepo đơn giản với 3 thư mục chính nằm chung trong thư mục gốc:
 
@@ -60,7 +87,7 @@ TingTing/
 
 ---
 
-## 4. Quy trình phát triển (Development Workflow)
+## 5. Quy trình phát triển (Development Workflow)
 
 1. **Mô hình Git Flow:**
    - `main`: Nhánh gốc (Production), chứa code ổn định nhất. Deploy tự động lên môi trường thực tế.
@@ -78,16 +105,16 @@ TingTing/
 
 ---
 
-## 5. Các Quy Chuẩn UI / UX (Frontend Design Rules)
+## 6. Các Quy Chuẩn UI / UX (Frontend Design Rules)
 
 Mọi màn hình và luồng giao diện đều phải tuân thủ nghiêm ngặt bảng Design Guidelines sau để giữ tính đồng bộ:
 
-### 5.1. Triết Lý Thiết Kế
+### 6.1. Triết Lý Thiết Kế
 - **Phong cách:** Minimalist (Tối giản), Clean UI. Ưu tiên giao diện Mobile-first (thiết kế khung dọc).
 - **Họa tiết:** Không sử dụng bóng đổ (shadows) quá gắt. Ưu tiên Flat Design hoặc Neumorphism rất nhẹ nhàng.
 - **Bố cục (Layout):** Không gian thoáng (White space rộng rãi). Phân chia khối bằng nền xám/trắng hoặc viền (border) nét siêu mỏng (1px).
 
-### 5.2. Bảng Màu (Color Palette)
+### 6.2. Bảng Màu (Color Palette)
 Hệ thống quản lý màu bằng CSS Variables, tuyệt đối sử dụng biến thay vì hard-code:
 - **Primary (`var(--primary)`):** Xanh Ngọc `#10B981`. Dùng cho nút bấm chính, Text nhấn mạnh.
 - **Background (`var(--background)`):** Trắng xám `#F9FAFB`. Làm nền dưới cùng cho App.
@@ -100,7 +127,7 @@ Hệ thống quản lý màu bằng CSS Variables, tuyệt đối sử dụng bi
   - Text phụ (`var(--text-secondary)`): Xám tro `#6B7280`.
 - **Viền (`var(--border)`):** Xám nhạt `#E5E7EB`.
 
-### 5.3. Typography & Cấu trúc
+### 6.3. Typography & Cấu trúc
 - **Font chữ:** Dùng Font mặc định hệ thống (SF Pro, Roboto, Inter). Không dùng font có chân.
 - **Header:** Luôn cố định (Sticky) trên cùng, nền trắng, có nút Back và viền mỏng ở dưới đáy.
 - **Thẻ Card:** Nền `#FFFFFF`, viền mỏng `#E5E7EB`, bo góc mềm mại (12px - 16px).
