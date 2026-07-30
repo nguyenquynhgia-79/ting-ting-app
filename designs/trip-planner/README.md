@@ -6,7 +6,7 @@ Thư mục này chứa toàn bộ thiết kế mockup cho tính năng **Trip Pla
 
 | File | Màn hình | Trạng thái |
 |:---|:---|:---|
-| `01-create-trip.png` | Tạo chuyến đi — Step 1 (Thông tin + Chọn mode) | ⏳ Chờ duyệt |
+| `01-create-trip.png` | Tạo chuyến đi — Step 1 (Thông tin + Chọn mode) | ✅ Đã duyệt |
 | `02-ai-preferences.png` | Nhập sở thích nhóm (AI mode — Step 2) | ✅ Đã duyệt |
 | `03-trip-timeline.png` | Màn hình Timeline chi tiết (Dùng chung cả 3 mode) | ✅ Đã duyệt |
 | `04-place-search-modal.png` | Modal tìm kiếm địa điểm Google Maps | ✅ Đã duyệt |
