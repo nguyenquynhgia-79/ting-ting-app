@@ -11,6 +11,8 @@ import Profile from './pages/Profile';
 import ChangePassword from './pages/ChangePassword';
 import JoinGroup from './pages/JoinGroup';
 import EditExpense from './pages/EditExpense';
+import { TripDetail } from "./pages/TripDetail";
+import { TripPlanner } from "./pages/TripPlanner";
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { SocketProvider } from './hooks/useSocket';
 import { DialogProvider } from './contexts/DialogContext';
@@ -66,6 +68,22 @@ function App() {
                 element={
                   <PrivateRoute>
                     <GroupDetails />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/groups/:id/trips/new" 
+                element={
+                  <PrivateRoute>
+                    <TripPlanner />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/groups/:id/trips/:tripId" 
+                element={
+                  <PrivateRoute>
+                    <TripDetail />
                   </PrivateRoute>
                 } 
               />

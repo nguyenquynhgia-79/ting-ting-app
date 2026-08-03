@@ -9,6 +9,16 @@
             "date": 1785216235993,
             "name": "D:\\ADMIN\\TingTing\\logs\\combined-2026-07-28.log",
             "hash": "5cb81423e4952aaea508237d2681670bc2f9de9e8743a78e3295c5f100f9cc84"
+        },
+        {
+            "date": 1785482589119,
+            "name": "D:\\ADMIN\\TingTing\\logs\\combined-2026-07-31.log",
+            "hash": "90092fe9c157f68b6dd0b089e3b83a198e7a4baec5e5b1dc8727525f587ff924"
+        },
+        {
+            "date": 1785731179946,
+            "name": "D:\\ADMIN\\TingTing\\logs\\combined-2026-08-03.log",
+            "hash": "3c8f105216eba32b16df0d6be83d39884949b5b5daa17c1b2096ef97cc886e18"
         }
     ],
     "hashType": "sha256"

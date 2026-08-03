@@ -7,7 +7,7 @@ Tài liệu này cung cấp cái nhìn tổng quan toàn diện về dự án Ti
 ## 1. Giới thiệu dự án (Introduction)
 **TingTing** là một ứng dụng quản lý chi tiêu nhóm, cho phép người dùng theo dõi các khoản thu/chi, tự động tính toán công nợ và số tiền cần thanh toán giữa các thành viên một cách minh bạch, chính xác. 
 Hệ thống bao gồm 2 phần giao diện chính:
-- **App Người Dùng (FE):** Dành cho user cuối tạo nhóm, thêm chi tiêu, theo dõi công nợ.
+- **App Người Dùng (FE):** Dành cho user cuối tạo nhóm, thêm chi tiêu, theo dõi công nợ, và đặc biệt là lên lịch trình đi chơi tự động bằng AI.
 - **Trang Quản Trị (FE-Admin):** Dành cho Admin hệ thống cấp phát tài khoản, quản lý dữ liệu tổng quan.
 
 ---
@@ -22,6 +22,7 @@ Hệ thống bao gồm 2 phần giao diện chính:
 - **Cơ sở dữ liệu:** PostgreSQL
 - **Xác thực:** JWT (JSON Web Token)
 - **Upload:** Supabase Storage (hoặc Cloudinary/AWS S3 tùy cấu hình)
+- **AI & Bản đồ:** Google Gemini API (Lên kế hoạch), Mapbox GL JS & Geocoding (Bản đồ và tọa độ), Foursquare API (Tìm kiếm điểm đến - POI).
 
 **Các luồng xử lý chính (Main Flows):**
 1. **Luồng Xác thực (Auth Flow):** 
@@ -34,6 +35,12 @@ Hệ thống bao gồm 2 phần giao diện chính:
 4. **Luồng Thanh Toán / Đòi nợ (Payment/Reminder Flow):** 
    - User A trả tiền nợ cho User B tạo ra bản ghi Payment.
    - Gửi Notification (nhắc nợ, báo có tiền) bằng hệ thống thông báo nội bộ.
+5. **Luồng Lịch Trình AI (AI Trip Planner Flow):**
+   - Người dùng nhập điểm tập kết (sử dụng Mapbox Location Picker).
+   - Gửi yêu cầu (Prompt) chứa thông tin nhóm, ngân sách, số người lên Gemini.
+   - Gemini trả về bộ khung lịch trình, sau đó backend kết hợp Foursquare/Mapbox để tìm ra tọa độ & thông tin chính xác của từng điểm đến.
+   - Xử lý thông minh các ngoại lệ bằng tham số `&types=poi` (lọc rác) và back-off retry logic khi Gemini bị nghẽn (Lỗi 503).
+   - Tự động tính toán khoảng cách (khoảng cách < 50m tự động hiển thị thông báo "Tại điểm tập kết").
 
 ---
 
@@ -82,6 +89,11 @@ Dữ liệu được quản lý bằng Prisma ORM (PostgreSQL). Dưới đây l�
 - `id` (PK), `user_id` (FK): Người nhận thông báo.
 - `type`, `title`, `message`: Nội dung.
 - `is_read` (Boolean): Đã đọc chưa.
+
+**8. Lịch trình và AI (`trips`, `trip_stops`, `trip_preferences`)**
+- **Trip:** Chuyến đi (`name`, `destination`, `destination_lat`, `destination_lng`, `start_date`, `end_date`, `mode`: `AI`/`MANUAL`).
+- **TripStop:** Chi tiết từng điểm đến (`lat`, `lng`, `name`, `type`, `scheduled_time`, `source`: `AI`/`MANUAL`).
+- **TripPreference:** Các cấu hình để AI sinh ra lịch (bán kính `radius_km`, số người, budget, phương tiện `travel_style`).
 
 ### 2.2 Frontend (Web App / Mobile Web)
 - **Core:** React.js (phiên bản 18+)

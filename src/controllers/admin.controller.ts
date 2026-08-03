@@ -35,6 +35,7 @@ export const getUsers = asyncHandler(async (req: Request, res: Response) => {
       status: true,
       role: true,
       created_at: true,
+      subscription: true,
     },
     orderBy: { created_at: 'desc' }
   });
@@ -206,4 +207,24 @@ export const createUser = asyncHandler(async (req: Request, res: Response) => {
   });
 
   res.status(201).json({ message: "Tạo người dùng thành công", user });
+});
+
+export const updateUserSubscription = asyncHandler(async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  const { isPremium } = req.body;
+  
+  if (typeof isPremium !== 'boolean') {
+    return res.status(400).json({ message: "isPremium boolean is required" });
+  }
+
+  const subscription = await userService.setUserPremium(id, isPremium);
+  
+  await auditService.logAction({
+    userId: req.user!.userId,
+    action: "ADMIN_UPDATE_SUBSCRIPTION",
+    details: { targetUserId: id, isPremium },
+    req
+  });
+
+  res.json({ message: "Cập nhật gói đăng ký thành công", subscription });
 });

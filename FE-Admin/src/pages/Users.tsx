@@ -14,6 +14,10 @@ interface User {
   status: string;
   role: string;
   created_at: string;
+  subscription?: {
+    plan: string;
+    expires_at: string | null;
+  } | null;
 }
 
 const Users = () => {
@@ -54,6 +58,22 @@ const Users = () => {
       setUsers(users.map(u => u.id === user.id ? { ...u, status: newStatus } : u));
     } catch (error) {
       toast.error('Có lỗi xảy ra khi cập nhật trạng thái');
+    }
+  };
+
+  const handleTogglePremium = async (user: User) => {
+    const isCurrentlyPremium = user.subscription?.plan === 'PREMIUM';
+    const newStatus = !isCurrentlyPremium;
+    const actionText = newStatus ? 'Cấp quyền Premium cho' : 'Hủy quyền Premium của';
+
+    if (!window.confirm(`Bạn có chắc chắn muốn ${actionText} tài khoản ${user.username}?`)) return;
+
+    try {
+      const { data } = await axios.patch(`/admin/users/${user.id}/subscription`, { isPremium: newStatus });
+      toast.success(`${actionText} tài khoản ${user.username} thành công`);
+      setUsers(users.map(u => u.id === user.id ? { ...u, subscription: data.subscription } : u));
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi cập nhật gói đăng ký');
     }
   };
 
@@ -138,8 +158,15 @@ const Users = () => {
                           <ShieldAlert size={12} /> ADMIN
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-700">
-                          USER
+                        <span className="inline-flex flex-col gap-1 items-start">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-700">
+                            USER
+                          </span>
+                          {user.subscription?.plan === 'PREMIUM' && (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold bg-gradient-to-r from-amber-200 to-yellow-400 text-amber-900 uppercase tracking-wider shadow-sm">
+                              ✨ Premium
+                            </span>
+                          )}
                         </span>
                       )}
                     </td>
@@ -163,20 +190,33 @@ const Users = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       {user.role !== 'ADMIN' && (
-                        <button
-                          onClick={() => handleToggleStatus(user)}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-colors ${
-                            user.status === 'blocked' 
-                              ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200' 
-                              : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
-                          }`}
-                        >
-                          {user.status === 'blocked' ? (
-                            <><Unlock size={16} /> Mở khóa</>
-                          ) : (
-                            <><Lock size={16} /> Khóa tài khoản</>
-                          )}
-                        </button>
+                        <div className="flex flex-col items-end gap-2">
+                          <button
+                            onClick={() => handleTogglePremium(user)}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-colors w-[140px] justify-center ${
+                              user.subscription?.plan === 'PREMIUM'
+                                ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 border border-amber-300'
+                                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+                            }`}
+                          >
+                            {user.subscription?.plan === 'PREMIUM' ? 'Hủy Premium' : 'Cấp Premium'}
+                          </button>
+
+                          <button
+                            onClick={() => handleToggleStatus(user)}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-colors w-[140px] justify-center ${
+                              user.status === 'blocked' 
+                                ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200' 
+                                : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
+                            }`}
+                          >
+                            {user.status === 'blocked' ? (
+                              <><Unlock size={16} /> Mở khóa</>
+                            ) : (
+                              <><Lock size={16} /> Khóa tài khoản</>
+                            )}
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>

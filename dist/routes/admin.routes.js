@@ -15,4 +15,5 @@ router.get("/logs", admin_controller_1.getLogs);
 router.get("/chart-data", admin_controller_1.getChartData);
 router.post("/notifications/broadcast", admin_controller_1.broadcastNotification);
 router.patch("/users/:id/status", admin_controller_1.updateUserStatus);
+router.patch("/users/:id/subscription", admin_controller_1.updateUserSubscription);
 exports.default = router;

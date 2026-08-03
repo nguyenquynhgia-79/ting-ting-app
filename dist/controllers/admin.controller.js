@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createUser = exports.broadcastNotification = exports.getChartData = exports.getLogs = exports.getGroups = exports.updateUserStatus = exports.getUsers = exports.getSystemStats = void 0;
+exports.updateUserSubscription = exports.createUser = exports.broadcastNotification = exports.getChartData = exports.getLogs = exports.getGroups = exports.updateUserStatus = exports.getUsers = exports.getSystemStats = void 0;
 const error_handler_1 = require("../middleware/error-handler");
 const database_1 = __importDefault(require("../config/database"));
 const socket_1 = require("../socket");
@@ -181,4 +181,19 @@ exports.createUser = (0, error_handler_1.asyncHandler)(async (req, res) => {
         req
     });
     res.status(201).json({ message: "Tạo người dùng thành công", user });
+});
+exports.updateUserSubscription = (0, error_handler_1.asyncHandler)(async (req, res) => {
+    const id = req.params.id;
+    const { isPremium } = req.body;
+    if (typeof isPremium !== 'boolean') {
+        return res.status(400).json({ message: "isPremium boolean is required" });
+    }
+    const subscription = await user_service_1.userService.setUserPremium(id, isPremium);
+    await audit_service_1.auditService.logAction({
+        userId: req.user.userId,
+        action: "ADMIN_UPDATE_SUBSCRIPTION",
+        details: { targetUserId: id, isPremium },
+        req
+    });
+    res.json({ message: "Cập nhật gói đăng ký thành công", subscription });
 });

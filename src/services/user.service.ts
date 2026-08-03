@@ -125,6 +125,24 @@ export class UserService {
       total_borrowed: totalBorrowed
     };
   }
+  
+  async setUserPremium(userId: string, isPremium: boolean) {
+    if (isPremium) {
+      const expiresAt = new Date();
+      expiresAt.setMonth(expiresAt.getMonth() + 1); // 1 month premium
+      return await prisma.subscription.upsert({
+        where: { user_id: userId },
+        update: { plan: 'PREMIUM', expires_at: expiresAt },
+        create: { user_id: userId, plan: 'PREMIUM', expires_at: expiresAt }
+      });
+    } else {
+      return await prisma.subscription.upsert({
+        where: { user_id: userId },
+        update: { plan: 'FREE', expires_at: null },
+        create: { user_id: userId, plan: 'FREE', expires_at: null }
+      });
+    }
+  }
 }
 
 export const userService = new UserService();

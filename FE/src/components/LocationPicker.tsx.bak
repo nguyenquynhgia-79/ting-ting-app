@@ -1,0 +1,292 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { MapPin, Search, X, Loader2, ChevronRight, Navigation } from 'lucide-react';
+import api from '../services/api';
+
+interface LocationResult {
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+  google_place_id?: string;
+}
+
+interface LocationPickerProps {
+  value: {
+    name: string;
+    lat?: number;
+    lng?: number;
+  };
+  onChange: (location: { name: string; lat?: number; lng?: number }) => void;
+  placeholder?: string;
+}
+
+// Debounce helper
+function useDebounce<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
+
+export const LocationPicker: React.FC<LocationPickerProps> = ({
+  value,
+  onChange,
+  placeholder = 'Tìm kiếm địa điểm...',
+}) => {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<LocationResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selected, setSelected] = useState<LocationResult | null>(null);
+  const [showMap, setShowMap] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const debouncedQuery = useDebounce(query, 400);
+
+  // Search via backend Places API
+  useEffect(() => {
+    if (!debouncedQuery.trim() || debouncedQuery.length < 2) {
+      setResults([]);
+      return;
+    }
+    setLoading(true);
+    const params = new URLSearchParams({ keyword: debouncedQuery });
+    api.get(`/trips/places/search?${params}`)
+      .then(res => setResults(res.data || []))
+      .catch(() => setResults([]))
+      .finally(() => setLoading(false));
+  }, [debouncedQuery]);
+
+  // Close modal on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    if (open) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  // Focus input when modal opens
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+      // Pre-fill with current value name for editing
+      if (value.name) setQuery(value.name);
+    }
+  }, [open]);
+
+  const handleSelect = (place: LocationResult) => {
+    setSelected(place);
+    setShowMap(true);
+    setQuery(place.name);
+    setResults([]);
+  };
+
+  const handleConfirm = () => {
+    if (selected) {
+      onChange({ name: selected.name, lat: selected.lat, lng: selected.lng });
+    }
+    setOpen(false);
+    setShowMap(false);
+    setQuery('');
+    setSelected(null);
+  };
+
+  const handleClear = () => {
+    setSelected(null);
+    setShowMap(false);
+    setQuery('');
+    setResults([]);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const openInGoogleMaps = () => {
+    if (selected) {
+      const url = `https://www.google.com/maps/search/?api=1&query=${selected.lat},${selected.lng}&query_place_id=${selected.google_place_id || ''}`;
+      window.open(url, '_blank');
+    }
+  };
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) return;
+    setLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        // Reverse geocode using a search
+        setSelected({ name: 'Vị trí hiện tại', address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`, lat, lng });
+        setQuery('Vị trí hiện tại');
+        setShowMap(true);
+        setLoading(false);
+      },
+      () => setLoading(false)
+    );
+  };
+
+  const mapEmbedUrl = selected
+    ? `https://maps.google.com/maps?q=${selected.lat},${selected.lng}&z=15&output=embed&hl=vi`
+    : '';
+
+  const displayText = value.name || '';
+
+  return (
+    <>
+      {/* Trigger Button */}
+      <button
+        type="button"
+        className="tp-location-trigger"
+        onClick={() => setOpen(true)}
+      >
+        <div className="tp-location-icon">
+          <MapPin size={18} />
+        </div>
+        <span className={displayText ? 'tp-location-value' : 'tp-location-placeholder'}>
+          {displayText || placeholder}
+        </span>
+        {value.lat && (
+          <span className="tp-location-badge">📍</span>
+        )}
+        <ChevronRight size={16} className="tp-location-arrow" />
+      </button>
+
+      {/* Full-screen Modal */}
+      {open && (
+        <div className="lp-overlay">
+          <div className="lp-modal" ref={modalRef}>
+            {/* Modal Header */}
+            <div className="lp-header">
+              <button type="button" className="lp-close-btn" onClick={() => setOpen(false)}>
+                <X size={22} />
+              </button>
+              <h3 className="lp-title">Chọn địa điểm tập kết</h3>
+              <div style={{ width: 36 }} />
+            </div>
+
+            {/* Search Bar */}
+            <div className="lp-search-wrap">
+              <Search size={18} className="lp-search-icon" />
+              <input
+                ref={inputRef}
+                type="text"
+                className="lp-search-input"
+                placeholder="Tìm kiếm thành phố, khách sạn, địa danh..."
+                value={query}
+                onChange={e => {
+                  setQuery(e.target.value);
+                  if (showMap) { setShowMap(false); setSelected(null); }
+                }}
+              />
+              {query ? (
+                <button type="button" onClick={handleClear} className="lp-search-clear">
+                  <X size={16} />
+                </button>
+              ) : null}
+            </div>
+
+            {/* Use current location */}
+            {!showMap && (
+              <button type="button" className="lp-gps-btn" onClick={useCurrentLocation}>
+                <Navigation size={16} />
+                <span>Dùng vị trí hiện tại của tôi</span>
+              </button>
+            )}
+
+            {/* Loading */}
+            {loading && (
+              <div className="lp-loading">
+                <Loader2 size={20} className="animate-spin" />
+                <span>Đang tìm kiếm...</span>
+              </div>
+            )}
+
+            {/* Results list */}
+            {!loading && results.length > 0 && !showMap && (
+              <div className="lp-results">
+                {results.map((place, idx) => (
+                  <button
+                    key={place.google_place_id || idx}
+                    type="button"
+                    className="lp-result-item"
+                    onClick={() => handleSelect(place)}
+                  >
+                    <div className="lp-result-pin">
+                      <MapPin size={16} />
+                    </div>
+                    <div className="lp-result-text">
+                      <div className="lp-result-name">{place.name}</div>
+                      <div className="lp-result-addr">{place.address}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!loading && query.length >= 2 && results.length === 0 && !showMap && (
+              <div className="lp-empty">
+                <MapPin size={32} />
+                <p>Không tìm thấy địa điểm phù hợp</p>
+                <p style={{ fontSize: 13, marginTop: 4 }}>Thử từ khóa khác</p>
+              </div>
+            )}
+
+            {/* Map Preview + Confirm */}
+            {showMap && selected && (
+              <div className="lp-map-section">
+                {/* Selected info */}
+                <div className="lp-selected-info">
+                  <div className="lp-selected-pin">
+                    <MapPin size={20} />
+                  </div>
+                  <div className="lp-selected-text">
+                    <div className="lp-selected-name">{selected.name}</div>
+                    <div className="lp-selected-addr">{selected.address}</div>
+                    {selected.lat && (
+                      <div className="lp-coords">
+                        {selected.lat.toFixed(5)}, {selected.lng.toFixed(5)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Map embed */}
+                <div className="lp-map-frame">
+                  <iframe
+                    title="map-preview"
+                    src={mapEmbedUrl}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 'none', borderRadius: 12 }}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                </div>
+
+                {/* Open in Maps app */}
+                <button type="button" className="lp-open-maps-btn" onClick={openInGoogleMaps}>
+                  <MapPin size={16} />
+                  Kiểm tra trên Google Maps
+                </button>
+
+                {/* Confirm */}
+                <div className="lp-footer">
+                  <button type="button" className="lp-back-btn" onClick={handleClear}>
+                    ← Chọn lại
+                  </button>
+                  <button type="button" className="lp-confirm-btn" onClick={handleConfirm}>
+                    ✓ Xác nhận vị trí
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+};

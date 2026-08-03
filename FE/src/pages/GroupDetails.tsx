@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, MoreVertical, Plus, Receipt, 
-  CreditCard, Info, Clock, QrCode, Users, Copy, Check, Trash2, Camera, Loader2, X, Edit, AlertCircle
+  CreditCard, Info, Clock, QrCode, Users, Copy, Check, Trash2, Camera, Loader2, X, Edit, AlertCircle, Map
 } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
@@ -21,7 +21,8 @@ const GroupDetails = () => {
   const [group, setGroup] = useState<any>(null);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'EXPENSES' | 'LEDGER'>('EXPENSES');
+  const [activeTab, setActiveTab] = useState<'EXPENSES' | 'LEDGER' | 'TRIPS'>('EXPENSES');
+  const [trips, setTrips] = useState<any[]>([]);
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
@@ -65,12 +66,14 @@ const GroupDetails = () => {
 
   const fetchGroupData = async () => {
     try {
-      const [groupRes, expensesRes] = await Promise.all([
+      const [groupRes, expensesRes, tripsRes] = await Promise.all([
         api.get(`/groups/${id}`),
-        api.get(`/expenses/group/${id}`)
+        api.get(`/expenses/group/${id}`),
+        api.get(`/trips/group/${id}`).catch(() => ({ data: [] }))
       ]);
       setGroup(groupRes.data);
       setExpenses(expensesRes.data);
+      setTrips(tripsRes.data);
     } catch (err) {
       console.error("Error fetching group details", err);
     } finally {
@@ -578,6 +581,18 @@ const GroupDetails = () => {
           >
             Sổ cái
           </button>
+          <button 
+            onClick={() => setActiveTab('TRIPS')}
+            style={{ 
+              flex: 1, padding: '10px', borderRadius: 12, fontWeight: 700, fontSize: 14,
+              backgroundColor: activeTab === 'TRIPS' ? '#fff' : 'transparent',
+              color: activeTab === 'TRIPS' ? 'var(--text-primary)' : 'var(--text-secondary)',
+              border: 'none', transition: 'all 0.2s ease',
+              boxShadow: activeTab === 'TRIPS' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none'
+            }}
+          >
+            Lịch trình
+          </button>
         </div>
 
         {/* Content List */}
@@ -1006,7 +1021,7 @@ const GroupDetails = () => {
                 </div>
               )}
             </div>
-          ) : (
+          ) : activeTab === 'LEDGER' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {group.members.map((member: any) => (
                 <div key={member.id} style={{
@@ -1064,7 +1079,72 @@ const GroupDetails = () => {
                 </div>
               ))}
             </div>
-          )}
+          ) : activeTab === 'TRIPS' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Chuyến đi của nhóm</h3>
+                <button 
+                  onClick={() => navigate(`/groups/${id}/trips/new`)}
+                  style={{ 
+                    padding: '8px 16px', borderRadius: 20, backgroundColor: 'var(--primary-light)', 
+                    color: 'var(--primary)', border: 'none', fontWeight: 700, fontSize: 13,
+                    display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer'
+                  }}
+                >
+                  <Plus size={16} /> Tạo mới
+                </button>
+              </div>
+
+              {trips.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 24px', backgroundColor: '#fff', borderRadius: 24, border: '1px dashed var(--border)' }}>
+                  <Map size={48} color="var(--border)" style={{ marginBottom: 16 }} />
+                  <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>Chưa có lịch trình nào</p>
+                  <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Hãy sử dụng trợ lý AI để tạo một chuyến đi tuyệt vời cho nhóm bạn nhé.</p>
+                </div>
+              ) : (
+                trips.map(trip => (
+                  <div 
+                    key={trip.id}
+                    onClick={() => navigate(`/groups/${id}/trips/${trip.id}`)}
+                    style={{
+                      backgroundColor: 'white', borderRadius: 20, padding: 16,
+                      border: '1px solid var(--border)', cursor: 'pointer',
+                      display: 'flex', flexDirection: 'column', gap: 12,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <h4 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 4px', color: 'var(--text-primary)' }}>{trip.name}</h4>
+                        <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          Điểm đến: <strong>{trip.destination}</strong>
+                        </p>
+                      </div>
+                      <span style={{ 
+                        padding: '4px 8px', borderRadius: 8, fontSize: 11, fontWeight: 700,
+                        backgroundColor: trip.status === 'PUBLISHED' ? '#ECFDF5' : '#F3F4F6',
+                        color: trip.status === 'PUBLISHED' ? '#10B981' : '#6B7280'
+                      }}>
+                        {trip.status === 'PUBLISHED' ? 'Đã xuất bản' : 'Bản nháp'}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
+                        <Clock size={14} />
+                        {new Date(trip.start_date).toLocaleDateString('vi-VN')} - {new Date(trip.end_date).toLocaleDateString('vi-VN')}
+                      </div>
+                      {trip.mode === 'AI' && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#8B5CF6', fontWeight: 600, backgroundColor: '#EDE9FE', padding: '2px 8px', borderRadius: 12 }}>
+                          <span>✨ AI Generated</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : null}
         </div>
       </div>
 

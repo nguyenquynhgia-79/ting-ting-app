@@ -28,6 +28,8 @@ model User {
   notifications    Notification[]
   receivedPayments Payment[]      @relation("ReceivedBy")
   sentPayments     Payment[]      @relation("SentBy")
+  subscription     Subscription?
+  trips            Trip[]
 
   @@map("users")
 }
@@ -44,6 +46,7 @@ model Group {
   members     GroupMember[]
   creator     User          @relation("CreatedBy", fields: [created_by], references: [id])
   payments    Payment[]
+  trips       Trip[]
 
   @@map("groups")
 }
@@ -161,4 +164,90 @@ enum PaymentStatus {
   PENDING
   COMPLETED
   REJECTED
+}
+
+enum SubscriptionPlan {
+  FREE
+  PREMIUM
+}
+
+enum TripMode {
+  AI
+  MANUAL
+}
+
+enum TripStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum TripSource {
+  AI
+  MANUAL
+}
+
+model Subscription {
+  id         String           @id @default(uuid())
+  user_id    String           @unique
+  plan       SubscriptionPlan @default(FREE)
+  started_at DateTime         @default(now())
+  expires_at DateTime?
+  user       User             @relation(fields: [user_id], references: [id])
+
+  @@map("subscriptions")
+}
+
+model Trip {
+  id              String     @id @default(uuid())
+  group_id        String
+  created_by      String
+  name            String
+  destination     String
+  destination_lat Float?
+  destination_lng Float?
+  start_date      DateTime
+  end_date        DateTime
+  mode            TripMode   @default(MANUAL)
+  status          TripStatus @default(DRAFT)
+  created_at      DateTime   @default(now())
+
+  group      Group           @relation(fields: [group_id], references: [id])
+  creator    User            @relation(fields: [created_by], references: [id])
+  preference TripPreference?
+  stops      TripStop[]
+
+  @@map("trips")
+}
+
+model TripPreference {
+  id                String  @id @default(uuid())
+  trip_id           String  @unique
+  num_people        Int
+  budget_per_person Decimal
+  preferences       String // JSON string
+  travel_style      String
+  radius_km         Int
+  trip              Trip    @relation(fields: [trip_id], references: [id])
+
+  @@map("trip_preferences")
+}
+
+model TripStop {
+  id              String     @id @default(uuid())
+  trip_id         String
+  order           Int
+  name            String
+  address         String?
+  lat             Float?
+  lng             Float?
+  type            String?
+  scheduled_time  String?
+  photo_url       String?
+  rating          Float?
+  description     String?
+  google_place_id String?
+  source          TripSource @default(MANUAL)
+  trip            Trip       @relation(fields: [trip_id], references: [id])
+
+  @@map("trip_stops")
 }

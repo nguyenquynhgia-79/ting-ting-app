@@ -20,6 +20,7 @@ const storage_routes_1 = __importDefault(require("./routes/storage.routes"));
 const user_routes_1 = __importDefault(require("./routes/user.routes"));
 const notification_routes_1 = __importDefault(require("./routes/notification.routes"));
 const admin_routes_1 = __importDefault(require("./routes/admin.routes"));
+const trip_routes_1 = __importDefault(require("./routes/trip.routes"));
 const app = (0, express_1.default)();
 // Disable server fingerprinting
 app.disable("x-powered-by");
@@ -75,6 +76,7 @@ app.use("/api/storage", storage_routes_1.default);
 app.use("/api/users", user_routes_1.default);
 app.use("/api/notifications", notification_routes_1.default);
 app.use("/api/admin", admin_routes_1.default);
+app.use("/api/trips", trip_routes_1.default);
 // Catch-all for unknown routes
 app.use((req, res) => {
     res.status(404).json({ status: "error", message: `Route not found: ${req.method} ${req.path}` });
