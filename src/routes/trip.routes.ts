@@ -5,6 +5,7 @@ const router = Router();
 
 router.post("/", tripController.createTrip);
 router.get("/:tripId", tripController.getTrip);
+router.get("/group/:groupId", tripController.getTripsByGroup);
 
 // AI & Search routes
 router.post("/:tripId/generate", tripController.generateAIPlan);
