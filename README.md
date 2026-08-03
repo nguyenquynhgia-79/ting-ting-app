@@ -1,4 +1,8 @@
-# 🌍 TingTing - Nền Tảng Quản Lý Nhóm & Lên Lịch Trình Bằng AI
+<div align="center">
+  <img src="FE/public/logoTingTing.png" alt="TingTing Logo" width="200" />
+  <h1>🌍 TingTing - Nền Tảng Quản Lý Nhóm & Lên Lịch Trình Bằng AI</h1>
+</div>
+
 
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
@@ -27,7 +31,7 @@ Dưới đây là luồng nghiệp vụ thực tế của ứng dụng, được
 ### 2. Quản Lý Nhóm & Thành Viên
 | Chi Tiết Nhóm | Cài Đặt Cá Nhân |
 |:---:|:---:|
-| ![ChiTietNhom](docs/demo/ChiTietNhom.jpg) | ![TrangCaNhan](docs/demo/TrangCaNhan.jpg) |
+| ![ChiTietNhom](docs/demo/ChiTietNhom.jpg) | ![TrangCaNhan](docs/demo/TrangCaNhanUpDate.jpg) |
 | *Hiển thị các hoạt động của nhóm, thành viên và tình trạng quỹ.* | *Quản lý thông tin, avatar (Upload qua AWS S3) và tài khoản ngân hàng.* |
 
 ### 3. Lên Lịch Trình Bằng AI & Bản Đồ Tương Tác
