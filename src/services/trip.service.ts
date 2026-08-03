@@ -20,11 +20,16 @@ export const tripService = {
       radius_km: number;
     }
   }) {
-    // Basic verification - checking if group exists and user is admin
-    // Note: Premium check will be added later or checked via middleware
+    // Basic verification - checking if group exists and user is member
     const group = await prisma.group.findUnique({ where: { id: data.group_id } });
     if (!group) throw new Error("Group not found");
-    if (group.created_by !== userId) throw new Error("Only group creator can create trips");
+    
+    const isMember = await prisma.groupMember.findUnique({
+      where: {
+        group_id_user_id: { group_id: data.group_id, user_id: userId }
+      }
+    });
+    if (!isMember) throw new Error("Only group members can create trips");
 
     const trip = await prisma.trip.create({
       data: {
@@ -62,6 +67,17 @@ export const tripService = {
     });
     if (!trip) throw new Error("Trip not found");
     return trip;
+  },
+
+  async getTripsByGroup(groupId: string) {
+    const trips = await prisma.trip.findMany({
+      where: { group_id: groupId },
+      orderBy: { created_at: 'desc' },
+      include: {
+        preference: true
+      }
+    });
+    return trips;
   },
 
   async addStop(tripId: string, userId: string, data: {

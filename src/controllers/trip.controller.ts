@@ -14,6 +14,12 @@ export const getTrip = asyncHandler(async (req: Request, res: Response) => {
   res.json(trip);
 });
 
+export const getTripsByGroup = asyncHandler(async (req: Request, res: Response) => {
+  const groupId = req.params.groupId as string;
+  const trips = await tripService.getTripsByGroup(groupId);
+  res.json(trips);
+});
+
 export const addStop = asyncHandler(async (req: Request, res: Response) => {
   const tripId = req.params.tripId as string;
   const userId = req.user!.userId;
