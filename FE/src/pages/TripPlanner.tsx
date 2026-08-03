@@ -1,9 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, Component } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { tripService } from '../services/trip.service';
-import { Loader2, ChevronLeft } from 'lucide-react';
+import { Loader2, ChevronLeft, AlertTriangle } from 'lucide-react';
 import { DatePicker } from '../components/DatePicker';
 import { LocationPicker } from '../components/LocationPicker';
+
+// Error Boundary to prevent blank screen on unexpected crashes
+class LocationErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean; error: string }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: '' };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error: error.message };
+  }
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('[LocationPicker crash]', error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 16, background: '#FEF2F2', borderRadius: 12, border: '1px solid #FECACA', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+          <AlertTriangle size={18} color="#EF4444" style={{ flexShrink: 0, marginTop: 2 }} />
+          <div>
+            <div style={{ fontWeight: 600, color: '#B91C1C', fontSize: 14 }}>Không thể tải bản đồ</div>
+            <div style={{ color: '#6B7280', fontSize: 13, marginTop: 4 }}>
+              Vui lòng kiểm tra biến <code>VITE_MAPBOX_ACCESS_TOKEN</code> trong cài đặt môi trường.
+            </div>
+            <button onClick={() => this.setState({ hasError: false, error: '' })} style={{ marginTop: 8, fontSize: 13, color: '#10B981', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>Thử lại</button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 
 export const TripPlanner: React.FC = () => {
   const { id: groupId } = useParams<{ id: string }>();
@@ -155,18 +187,20 @@ export const TripPlanner: React.FC = () => {
 
               <div className="tp-field">
                 <label>Địa điểm tập kết</label>
-                <LocationPicker
-                  value={{ name: destination, lat: destinationLat, lng: destinationLng }}
-                  onChange={(loc: any) => {
-                    const fullDest = loc.address && loc.address !== loc.name && !loc.name.includes('Vị trí hiện tại') 
-                      ? `${loc.name} - ${loc.address}`
-                      : loc.name;
-                    setDestination(fullDest);
-                    setDestinationLat(loc.lat);
-                    setDestinationLng(loc.lng);
-                  }}
-                  placeholder="Khách sạn Mộng Mơ, Đà Lạt"
-                />
+                <LocationErrorBoundary>
+                  <LocationPicker
+                    value={{ name: destination, lat: destinationLat, lng: destinationLng }}
+                    onChange={(loc: any) => {
+                      const fullDest = loc.address && loc.address !== loc.name && !loc.name.includes('Vị trí hiện tại') 
+                        ? `${loc.name} - ${loc.address}`
+                        : loc.name;
+                      setDestination(fullDest);
+                      setDestinationLat(loc.lat);
+                      setDestinationLng(loc.lng);
+                    }}
+                    placeholder="Khách sạn Mộng Mơ, Đà Lạt"
+                  />
+                </LocationErrorBoundary>
               </div>
             </div>
 

@@ -91,8 +91,16 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
   // Initialize and update Mapbox
   useEffect(() => {
-    if (showMap && selected && mapContainer.current) {
-      if (!mapRef.current) {
+    if (!showMap || !selected || !mapContainer.current) return;
+
+    // Guard: skip map if no token configured
+    if (!mapboxgl.accessToken) {
+      console.warn('[LocationPicker] VITE_MAPBOX_ACCESS_TOKEN is not set. Map disabled.');
+      return;
+    }
+
+    if (!mapRef.current) {
+      try {
         // Initialize Map
         const map = new mapboxgl.Map({
           container: mapContainer.current,
@@ -128,12 +136,14 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
         mapRef.current = map;
         markerRef.current = marker;
-      } else {
-        // Just fly to new location if map already exists
-        mapRef.current.flyTo({ center: [selected.lng, selected.lat], zoom: 15 });
-        if (markerRef.current) {
-          markerRef.current.setLngLat([selected.lng, selected.lat]);
-        }
+      } catch (err) {
+        console.error('[LocationPicker] Failed to initialize Mapbox map:', err);
+      }
+    } else {
+      // Just fly to new location if map already exists
+      mapRef.current.flyTo({ center: [selected.lng, selected.lat], zoom: 15 });
+      if (markerRef.current) {
+        markerRef.current.setLngLat([selected.lng, selected.lat]);
       }
     }
 
